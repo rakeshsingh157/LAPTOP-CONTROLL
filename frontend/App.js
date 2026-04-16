@@ -12,7 +12,7 @@ import { WebView } from 'react-native-webview';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import axios from 'axios';
-import { Home, Activity, Terminal as TerminalIcon, Folder, Download, Upload, Search, ArrowUp, UploadCloud, Monitor , AlertTriangle, X, Camera, RefreshCcw, Smartphone, Mouse } from "lucide-react-native";
+import { Home, Activity, Terminal as TerminalIcon, Folder, Download, Upload, Search, ArrowUp, UploadCloud, Monitor , AlertTriangle, X, Camera, RefreshCcw, Smartphone, Mouse, Shield, Zap, Lock } from "lucide-react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { mediaDevices, RTCPeerConnection, RTCIceCandidate, RTCSessionDescription } from 'react-native-webrtc';
 
@@ -438,6 +438,57 @@ function DashboardScreen() {
               <Camera color={tw.color('on-surface')} size={24} />
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* POWER SYSTEM MATRIX */}
+        <View style={tw`bg-surface-container-low p-6 rounded-md mb-6 border border-red-500/20`}>
+          <View style={tw`flex-row items-center mb-4`}>
+             <Zap color={tw.color('red-400')} size={20} style={tw`mr-2`} />
+             <Text style={tw`text-red-400 text-xs font-bold tracking-widest`}>GOD MODE POWER SYSTEM</Text>
+          </View>
+          <Text style={tw`text-outline text-xs mb-4 leading-5`}>
+            Unlock Android's highest persistence privileges to completely bypass background killing on TECNO/HiOS and other strict OEM systems.
+          </Text>
+
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openAutoStartSettings()} style={tw`bg-surface-container py-3 px-4 rounded-md mb-2 flex-row justify-between items-center`}>
+            <View>
+              <Text style={tw`text-on-surface font-bold text-sm`}>1. Enable OEM Auto-Start</Text>
+              <Text style={tw`text-outline text-xs mt-0.5`}>Allow app to boot automatically in background</Text>
+            </View>
+            <Activity color={tw.color('primary')} size={18} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.requestBatteryOptimizationExemption()} style={tw`bg-surface-container py-3 px-4 rounded-md mb-2 flex-row justify-between items-center`}>
+            <View>
+              <Text style={tw`text-on-surface font-bold text-sm`}>2. Bypass Battery Limits</Text>
+              <Text style={tw`text-outline text-xs mt-0.5`}>Set power restriction to 'Unrestricted'</Text>
+            </View>
+            <Zap color={tw.color('yellow-400')} size={18} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openNotificationListenerSettings()} style={tw`bg-surface-container py-3 px-4 rounded-md mb-2 flex-row justify-between items-center`}>
+            <View>
+              <Text style={tw`text-on-surface font-bold text-sm`}>3. Notification Listener</Text>
+              <Text style={tw`text-outline text-xs mt-0.5`}>System auto-restart on force close</Text>
+            </View>
+            <RefreshCcw color={tw.color('blue-400')} size={18} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openAccessibilitySettings()} style={tw`bg-surface-container py-3 px-4 rounded-md mb-2 flex-row justify-between items-center`}>
+            <View>
+              <Text style={tw`text-red-400 font-bold text-sm`}>4. Root Access: Accessibility</Text>
+              <Text style={tw`text-red-400/70 text-xs mt-0.5`}>Absolute Immortality (Impossible to kill)</Text>
+            </View>
+            <Shield color={tw.color('red-400')} size={18} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openDeviceAdminSettings()} style={tw`bg-surface-container py-3 px-4 rounded-md flex-row justify-between items-center`}>
+            <View>
+              <Text style={tw`text-purple-400 font-bold text-sm`}>5. Enterprise: Device Admin</Text>
+              <Text style={tw`text-purple-400/70 text-xs mt-0.5`}>Prevent uninstalls and memory wipes</Text>
+            </View>
+            <Lock color={tw.color('purple-400')} size={18} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -12,37 +12,33 @@ async def receive_notification(request: Request):
     body = data.get("body", "")
     app_name = data.get("app_name", "Phone")
 
+    print(f"\n[🔔 NOTIFICATION RECEIVED] App: {app_name} | Title: {title} | Body: {body}")
+
     # Build environment with proper display/session vars for notify-send
     env = os.environ.copy()
+    
+    # 1. Provide DISPLAY
     env["DISPLAY"] = os.environ.get("DISPLAY", ":0")
-    env.setdefault("XAUTHORITY", os.path.expanduser("~/.Xauthority"))
 
-    # Detect DBUS_SESSION_BUS_ADDRESS if not set (needed for notify-send via systemd service)
+    # 2. XDG_RUNTIME_DIR is strictly required by notify-send under systemd
+    uid = os.getuid()
+    if uid == 0:
+        uid = 1000 # Fallback to standard desktop user UID if service is running as root
+        
+    if "XDG_RUNTIME_DIR" not in env:
+        env["XDG_RUNTIME_DIR"] = f"/run/user/{uid}"
+
+    # 3. DBUS_SESSION_BUS_ADDRESS is strictly required for sending DBUS messages to the desktop
     if "DBUS_SESSION_BUS_ADDRESS" not in env:
-        uid = os.getuid()
-        dbus_addr = f"unix:path=/run/user/{uid}/bus"
-        if os.path.exists(f"/run/user/{uid}/bus"):
-            env["DBUS_SESSION_BUS_ADDRESS"] = dbus_addr
-        else:
-            # Fallback: try to read from /proc for the current user's gnome-session
-            try:
-                result = subprocess.run(
-                    ["grep", "-z", "DBUS_SESSION_BUS_ADDRESS",
-                     f"/proc/{_find_user_pid()}/environ"],
-                    capture_output=True, timeout=3
-                )
-                if result.returncode == 0:
-                    for part in result.stdout.decode(errors='ignore').split('\0'):
-                        if part.startswith("DBUS_SESSION_BUS_ADDRESS="):
-                            env["DBUS_SESSION_BUS_ADDRESS"] = part.split("=", 1)[1]
-                            break
-            except Exception:
-                pass
+        env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{uid}/bus"
+
+    if "PATH" not in env:
+        env["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
     # Use notify-send on Linux Desktop to display the notification
     # -u normal = normal urgency, -i phone = phone icon if available
     command = [
-        "notify-send",
+        "/usr/bin/notify-send",
         "-a", app_name,
         "-u", "normal",
         "-i", "phone",
@@ -51,8 +47,10 @@ async def receive_notification(request: Request):
     ]
     try:
         subprocess.Popen(command, env=env)
+        print("-> Successfully triggered notify-send command.")
         return {"status": "success", "message": "Notification forwarded to desktop"}
     except Exception as e:
+        print(f"-> [!] Failed to trigger notify-send: {str(e)}")
         return {"status": "error", "error": str(e)}
 
 
