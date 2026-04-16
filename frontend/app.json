@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Rakesh Laptop",
+    "slug": "rakesh-laptop",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rakesh.laptop"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "usesCleartextTraffic": true,
+      "edgeToEdgeEnabled": true,
+      "package": "com.rakesh.laptop"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
