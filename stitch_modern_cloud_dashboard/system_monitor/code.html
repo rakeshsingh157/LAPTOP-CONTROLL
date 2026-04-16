@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Core | System Monitor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-on-surface": "#313030",
+            "tertiary-fixed-dim": "#f7be00",
+            "tertiary-container": "#ffc938",
+            "surface-tint": "#00daf3",
+            "on-primary-fixed-variant": "#004f58",
+            "primary-fixed": "#9cf0ff",
+            "secondary-fixed": "#69ff87",
+            "surface-container-high": "#2a2a2a",
+            "on-error": "#690005",
+            "surface-dim": "#131313",
+            "outline": "#849396",
+            "on-secondary-fixed": "#002108",
+            "on-primary-container": "#00626e",
+            "on-primary-fixed": "#001f24",
+            "tertiary": "#ffebc3",
+            "on-error-container": "#ffdad6",
+            "primary": "#c3f5ff",
+            "surface-container": "#201f1f",
+            "secondary-container": "#02c953",
+            "on-tertiary-container": "#705500",
+            "primary-container": "#00e5ff",
+            "on-tertiary-fixed-variant": "#5a4300",
+            "surface": "#131313",
+            "inverse-primary": "#006875",
+            "surface-container-lowest": "#0e0e0e",
+            "on-secondary": "#003912",
+            "surface-container-highest": "#353534",
+            "tertiary-fixed": "#ffdf99",
+            "on-secondary-fixed-variant": "#00531e",
+            "surface-variant": "#353534",
+            "on-secondary-container": "#004d1b",
+            "secondary": "#40e56c",
+            "surface-container-low": "#1c1b1b",
+            "secondary-fixed-dim": "#3ce36a",
+            "inverse-surface": "#e5e2e1",
+            "background": "#131313",
+            "on-surface": "#e5e2e1",
+            "on-tertiary": "#3f2e00",
+            "error": "#ffb4ab",
+            "primary-fixed-dim": "#00daf3",
+            "on-tertiary-fixed": "#251a00",
+            "on-background": "#e5e2e1",
+            "error-container": "#93000a",
+            "outline-variant": "#3b494c",
+            "surface-bright": "#393939",
+            "on-primary": "#00363d",
+            "on-surface-variant": "#bac9cc"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "headline": ["Space Grotesk"],
+            "body": ["Inter"],
+            "label": ["Inter"],
+            "mono": ["JetBrains Mono"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body { font-family: 'Inter', sans-serif; }
+    .font-space-grotesk { font-family: 'Space Grotesk', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131313] flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#00E5FF] material-symbols-outlined">menu</button>
+<h1 class="text-2xl font-bold text-[#C3F5FF] tracking-widest uppercase font-space-grotesk">The Core</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 bg-[#353534] px-3 py-1 rounded-md">
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(64,229,108,0.6)]"></span>
+<span class="text-xs font-mono text-on-surface-variant tracking-wider uppercase">Live Refresh: 1s</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs border border-outline-variant/30">
+        RA
+      </div>
+</div>
+</header>
+<!-- NavigationDrawer -->
+<aside class="h-full w-72 fixed left-0 top-0 z-40 bg-[#1C1B1B] border-r border-[#3B494C]/15 shadow-[0px_0px_40px_rgba(0,218,243,0.04)] flex flex-col pt-20 pb-4 hidden md:flex">
+<div class="px-6 mb-8 flex items-start gap-4">
+<div class="w-10 h-10 bg-surface-container-highest rounded-md flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-[#00E5FF]">terminal</span>
+</div>
+<div>
+<h2 class="font-space-grotesk font-black text-[#00E5FF] text-sm uppercase">Root Node</h2>
+<p class="font-mono text-[10px] text-on-surface-variant">192.168.1.105</p>
+<span class="inline-block mt-1 text-[9px] font-bold text-secondary-container bg-secondary-container/10 px-1.5 py-0.5 rounded tracking-tighter">ONLINE</span>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-on-surface-variant hover:bg-[#353534] rounded-md px-4 py-3 mx-2 my-1 flex items-center gap-3 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span class="font-space-grotesk text-sm uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-[#353534] rounded-md px-4 py-3 mx-2 my-1 flex items-center gap-3 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg">folder_open</span>
+<span class="font-space-grotesk text-sm uppercase tracking-wider">Files</span>
+</a>
+<a class="bg-gradient-to-r from-[#C3F5FF] to-[#00E5FF] text-[#131313] font-bold rounded-md px-4 py-3 mx-2 my-1 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-lg">monitoring</span>
+<span class="font-space-grotesk text-sm uppercase tracking-wider">System Monitor</span>
+</a>
+<a class="text-on-surface-variant hover:bg-[#353534] rounded-md px-4 py-3 mx-2 my-1 flex items-center gap-3 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg">terminal</span>
+<span class="font-space-grotesk text-sm uppercase tracking-wider">Terminal</span>
+</a>
+<a class="text-on-surface-variant hover:bg-[#353534] rounded-md px-4 py-3 mx-2 my-1 flex items-center gap-3 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="font-space-grotesk text-sm uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Main Canvas -->
+<main class="md:ml-72 pt-24 px-6 pb-12">
+<!-- Status Overview Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+<!-- CPU Metric -->
+<div class="md:col-span-4 bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-space-grotesk text-on-surface-variant text-xs uppercase tracking-[0.2em]">Processor Load</h3>
+<span class="material-symbols-outlined text-primary text-sm">memory</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-5xl font-space-grotesk font-light text-on-surface">42.8</span>
+<span class="text-xl font-mono text-primary font-bold">%</span>
+</div>
+<div class="mt-4 flex gap-1 h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[42.8%] shadow-[0_0_10px_rgba(0,229,255,0.4)]"></div>
+</div>
+<div class="mt-4 flex justify-between font-mono text-[10px] text-on-surface-variant">
+<span>8 Cores | 16 Threads</span>
+<span>5.2 GHz Boost</span>
+</div>
+</div>
+<!-- RAM Metric -->
+<div class="md:col-span-4 bg-surface-container-low p-6 rounded-lg relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-space-grotesk text-on-surface-variant text-xs uppercase tracking-[0.2em]">Memory Usage</h3>
+<span class="material-symbols-outlined text-secondary text-sm">developer_board</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-5xl font-space-grotesk font-light text-on-surface">12.4</span>
+<span class="text-xl font-mono text-secondary font-bold">GB</span>
+</div>
+<div class="mt-4 flex gap-1 h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[38%] shadow-[0_0_10px_rgba(64,229,108,0.4)]"></div>
+</div>
+<div class="mt-4 flex justify-between font-mono text-[10px] text-on-surface-variant">
+<span>Total: 32 GB DDR5</span>
+<span>Swap: 0.2 GB</span>
+</div>
+</div>
+<!-- Network Metric -->
+<div class="md:col-span-4 bg-surface-container-low p-6 rounded-lg relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-space-grotesk text-on-surface-variant text-xs uppercase tracking-[0.2em]">Data Throughput</h3>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-sm">dynamic_form</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-5xl font-space-grotesk font-light text-on-surface">842</span>
+<span class="text-xl font-mono text-tertiary-fixed-dim font-bold">MB/s</span>
+</div>
+<div class="mt-4 flex items-center gap-4">
+<div class="flex-1 flex flex-col gap-1">
+<span class="text-[9px] text-on-surface-variant uppercase">Up</span>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-[65%]"></div>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<span class="text-[9px] text-on-surface-variant uppercase">Down</span>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Performance Charts Layer -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<!-- Primary Chart Area -->
+<div class="lg:col-span-2 bg-surface-container-low rounded-lg p-6 border border-outline-variant/10">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-lg font-space-grotesk font-bold text-on-surface">Kernel Performance</h2>
+<p class="text-xs text-on-surface-variant font-mono">Last 60 minutes sequence</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-surface-container-highest text-[10px] uppercase font-bold tracking-widest text-primary border border-primary/20 rounded">CPU</button>
+<button class="px-3 py-1 bg-transparent text-[10px] uppercase font-bold tracking-widest text-on-surface-variant hover:text-on-surface rounded transition-colors">IOPS</button>
+</div>
+</div>
+<!-- Abstract Performance Visualization (representing a chart) -->
+<div class="h-64 flex items-end gap-1 px-2 relative">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="border-t border-outline-variant/10 w-full"></div>
+<div class="border-t border-outline-variant/10 w-full"></div>
+<div class="border-t border-outline-variant/10 w-full"></div>
+<div class="border-t border-outline-variant/10 w-full"></div>
+</div>
+<!-- Chart Bars -->
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 40%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 45%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 55%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 42%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 30%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 38%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 60%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 75%"></div>
+<div class="flex-1 bg-primary-container hover:bg-primary-container/80 transition-all rounded-t-sm" style="height: 85%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 65%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 50%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 48%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 42%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 44%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 35%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 40%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 45%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 32%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 25%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 28%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 42%"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-all rounded-t-sm" style="height: 46%"></div>
+</div>
+<div class="mt-4 flex justify-between font-mono text-[9px] text-on-surface-variant uppercase tracking-widest">
+<span>60m ago</span>
+<span>45m ago</span>
+<span>30m ago</span>
+<span>15m ago</span>
+<span>Current</span>
+</div>
+</div>
+<!-- Real-time Console Log -->
+<div class="bg-surface-container-lowest rounded-lg p-6 border border-outline-variant/15 flex flex-col">
+<div class="flex items-center gap-2 mb-4">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<h3 class="font-space-grotesk text-xs uppercase tracking-widest text-on-surface">Event Console</h3>
+</div>
+<div class="flex-1 font-mono text-[11px] leading-relaxed overflow-y-auto space-y-2 text-on-surface-variant/80">
+<p><span class="text-tertiary-fixed-dim">[14:22:01]</span> System: Kernel audit triggered</p>
+<p><span class="text-tertiary-fixed-dim">[14:22:05]</span> Auth: <span class="text-secondary">SUCCESS</span> - User: root</p>
+<p><span class="text-tertiary-fixed-dim">[14:22:12]</span> Network: Inbound packet surge detected</p>
+<p><span class="text-tertiary-fixed-dim">[14:22:18]</span> Disk: I/O cycle optimized (0.02ms)</p>
+<p><span class="text-tertiary-fixed-dim">[14:22:30]</span> Process: <span class="text-primary">docker_d</span> restart</p>
+<p><span class="text-tertiary-fixed-dim">[14:23:01]</span> Alert: Temperature threshold nominal</p>
+<p><span class="text-tertiary-fixed-dim">[14:23:15]</span> System: GC Sweep completed in 14ms</p>
+<div class="flex items-center gap-2">
+<span class="text-primary">&gt;</span>
+<span class="w-1 h-3 bg-primary animate-pulse"></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Processes Table -->
+<section class="bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant/5">
+<div class="px-6 py-4 flex items-center justify-between border-b border-outline-variant/10">
+<h2 class="font-space-grotesk font-bold text-on-surface">Process Distribution</h2>
+<div class="flex items-center gap-4">
+<div class="relative">
+<input class="bg-surface-container-highest border-none rounded-md text-xs py-1.5 px-3 w-48 font-mono text-on-surface placeholder:text-on-surface-variant focus:ring-1 focus:ring-primary" placeholder="Filter node..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">filter_list</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50 font-space-grotesk text-[10px] uppercase tracking-widest text-on-surface-variant">
+<th class="px-6 py-3 font-medium">PID</th>
+<th class="px-6 py-3 font-medium">Process Name</th>
+<th class="px-6 py-3 font-medium">Status</th>
+<th class="px-6 py-3 font-medium">User</th>
+<th class="px-6 py-3 font-medium text-right">CPU</th>
+<th class="px-6 py-3 font-medium text-right">MEM</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 font-mono text-xs">
+<tr class="hover:bg-surface-container-highest/40 transition-colors group">
+<td class="px-6 py-4 text-on-surface-variant">10284</td>
+<td class="px-6 py-4 font-bold text-primary">core_engine_v3</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-secondary-container/10 text-secondary text-[10px] font-bold">RUNNING</span>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">root</td>
+<td class="px-6 py-4 text-right text-on-surface">12.4%</td>
+<td class="px-6 py-4 text-right text-on-surface">842.1 MB</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/40 transition-colors group">
+<td class="px-6 py-4 text-on-surface-variant">8812</td>
+<td class="px-6 py-4 font-bold text-on-surface">docker_daemon</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-secondary-container/10 text-secondary text-[10px] font-bold">RUNNING</span>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">system</td>
+<td class="px-6 py-4 text-right text-on-surface">4.8%</td>
+<td class="px-6 py-4 text-right text-on-surface">1.2 GB</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/40 transition-colors group">
+<td class="px-6 py-4 text-on-surface-variant">9001</td>
+<td class="px-6 py-4 font-bold text-tertiary-fixed-dim">db_vacuum_task</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-tertiary-container/10 text-tertiary-fixed-dim text-[10px] font-bold">PENDING</span>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">postgres</td>
+<td class="px-6 py-4 text-right text-on-surface">0.1%</td>
+<td class="px-6 py-4 text-right text-on-surface">45.0 MB</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/40 transition-colors group">
+<td class="px-6 py-4 text-on-surface-variant">10442</td>
+<td class="px-6 py-4 font-bold text-on-surface">node_exporter</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-secondary-container/10 text-secondary text-[10px] font-bold">RUNNING</span>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">metrics</td>
+<td class="px-6 py-4 text-right text-on-surface">1.2%</td>
+<td class="px-6 py-4 text-right text-on-surface">120.4 MB</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/40 transition-colors group">
+<td class="px-6 py-4 text-on-surface-variant">721</td>
+<td class="px-6 py-4 font-bold text-error">failed_sync_job</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-error-container/20 text-error text-[10px] font-bold">STOPPED</span>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">admin</td>
+<td class="px-6 py-4 text-right text-on-surface">0.0%</td>
+<td class="px-6 py-4 text-right text-on-surface">0.0 MB</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-3 bg-surface-container-low border-t border-outline-variant/10 flex justify-between items-center">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-mono">Showing 5 of 142 processes</span>
+<div class="flex gap-4">
+<button class="text-[10px] uppercase font-bold text-on-surface-variant hover:text-primary tracking-widest">Previous</button>
+<button class="text-[10px] uppercase font-bold text-on-surface hover:text-primary tracking-widest">Next Page</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 w-full bg-[#1C1B1B] h-16 flex justify-around items-center px-4 z-50">
+<button class="text-on-surface-variant flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-[9px] uppercase tracking-tighter">Dashboard</span>
+</button>
+<button class="text-[#00E5FF] flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-xl">monitoring</span>
+<span class="text-[9px] uppercase tracking-tighter font-bold">Monitor</span>
+</button>
+<button class="text-on-surface-variant flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-xl">terminal</span>
+<span class="text-[9px] uppercase tracking-tighter">Shell</span>
+</button>
+<button class="text-on-surface-variant flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-[9px] uppercase tracking-tighter">Setup</span>
+</button>
+</nav>
+</body></html>

@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-jose[cryptography]
+passlib[bcrypt]
+psutil
+python-multipart
+sqlalchemy
+pydantic
+websockets
+mss
+pyperclip
+Pillow
+pynput
