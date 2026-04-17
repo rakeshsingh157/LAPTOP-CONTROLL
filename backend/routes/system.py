@@ -407,23 +407,44 @@ async def screen_stream(websocket: WebSocket):
 # ---- FIND MY DEVICE ROUTES ----
 
 PHONE_WS_CONNECTION = None
+PHONE_TELEMETRY = {
+    "batteryLevel": 100,
+    "isCharging": False,
+    "isWifiEnabled": False,
+    "isBluetoothEnabled": False
+}
 
 @router.websocket("/phone_ws")
 async def phone_command_ws(websocket: WebSocket):
-    global PHONE_WS_CONNECTION
+    global PHONE_WS_CONNECTION, PHONE_TELEMETRY
     await websocket.accept()
     PHONE_WS_CONNECTION = websocket
     print("📱 Phone Command WS Connected to Desktop")
     try:
         while True:
             data = await websocket.receive_text()
-            # Write to a swap file so CLI can pick up async responses (like location URLs)
-            with open("/tmp/phone_cmd_response.json", "w") as f:
-                f.write(data)
-            print(f"[PHONE CMD] {data}")
+            try:
+                msg = json.loads(data)
+                if msg.get("status") == "telemetry":
+                    PHONE_TELEMETRY["batteryLevel"] = msg.get("batteryLevel", 0)
+                    PHONE_TELEMETRY["isCharging"] = msg.get("isCharging", False)
+                    PHONE_TELEMETRY["isWifiEnabled"] = msg.get("isWifiEnabled", False)
+                    PHONE_TELEMETRY["isBluetoothEnabled"] = msg.get("isBluetoothEnabled", False)
+                else:
+                    with open("/tmp/phone_cmd_response.json", "w") as f:
+                        f.write(data)
+            except Exception:
+                pass
     except WebSocketDisconnect:
         PHONE_WS_CONNECTION = None
         print("📱 Phone Command WS Disconnected")
+
+@router.get("/phone_telemetry")
+def get_phone_telemetry():
+    return {
+        "connected": PHONE_WS_CONNECTION is not None,
+        "telemetry": PHONE_TELEMETRY
+    }
 
 class PhoneCmd(BaseModel):
     action: str

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stitch Phone Ecosystem Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0a0a0a',
+                        surface: 'rgba(255, 255, 255, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0a0a0a; color: white; display: flex; flex-direction: column; min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
+        .battery-fill { transition: width 0.5s ease-in-out; }
+    </style>
+</head>
+<body class="p-8">
+
+    <header class="mb-8 flex justify-between items-center bg-transparent border-b border-gray-800 pb-4">
+        <div>
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">Stitch Ecosystem</h1>
+            <p class="text-gray-400 text-sm mt-1">Live Telemetry from Phone</p>
+        </div>
+        <div id="conn-status" class="flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-gray-400">
+            <i class="fas fa-circle text-red-500 text-xs shadow-[0_0_8px_rgba(239,68,68,0.8)]"></i> OFFLINE
+        </div>
+    </header>
+
+    <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto w-full">
+        
+        <!-- Battery Card -->
+        <div class="glass p-6 flex flex-col justify-between">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 class="text-lg text-gray-300 font-semibold mb-1">Battery Status</h2>
+                    <p id="charging-text" class="text-xs text-gray-500">Discharging</p>
+                </div>
+                <div class="p-3 bg-green-500/10 rounded-xl text-green-400">
+                    <i id="battery-icon" class="fas fa-battery-full text-xl"></i>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <div class="flex justify-between text-2xl font-bold mb-2">
+                    <span id="battery-text">--%</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-3">
+                    <div id="battery-bar" class="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full battery-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connectivity Card -->
+        <div class="glass p-6">
+            <h2 class="text-lg text-gray-300 font-semibold mb-6">Connectivity & Radios</h2>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <i id="wifi-icon" class="fas fa-wifi text-gray-400"></i>
+                        <span class="font-medium text-gray-300">Wi-Fi</span>
+                    </div>
+                    <span id="wifi-status" class="text-sm font-bold text-gray-400">OFF</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <i id="bt-icon" class="fab fa-bluetooth-b text-gray-400"></i>
+                        <span class="font-medium text-gray-300">Bluetooth</span>
+                    </div>
+                    <span id="bt-status" class="text-sm font-bold text-gray-400">OFF</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Controls Card -->
+        <div class="glass p-6">
+            <h2 class="text-lg text-gray-300 font-semibold mb-6">Phone Controls</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="sendCmd('ring')" class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition group">
+                    <i class="fas fa-bell text-red-400 text-2xl mb-2 group-hover:scale-110 transition"></i>
+                    <p class="text-red-300 font-medium text-sm text-left">Ring Phone</p>
+                </button>
+                <button onclick="sendCmd('stop_ring')" class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 transition group">
+                    <i class="fas fa-bell-slash text-green-400 text-2xl mb-2 group-hover:scale-110 transition"></i>
+                    <p class="text-green-300 font-medium text-sm text-left">Stop Ringing</p>
+                </button>
+                <button onclick="sendCmd('location')" class="col-span-2 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-map-marker-alt text-blue-400 text-xl group-hover:scale-110 transition"></i>
+                        <p class="text-blue-300 font-medium">Request Location (GPS)</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-blue-400/50"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        async function sendCmd(action) {
+            try {
+                await fetch('/api/system/send_phone_cmd', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                if(action === 'location') alert("GPS request sent to phone. Location link will appear in your notifications.");
+            } catch(e) {
+                alert("Failed to send command.");
+            }
+        }
+
+        async function pollTelemetry() {
+            try {
+                const res = await fetch('/api/system/phone_telemetry');
+                const data = await res.json();
+                
+                // Connection
+                const conn = document.getElementById('conn-status');
+                if (data.connected) {
+                    conn.innerHTML = `<i class="fas fa-circle text-green-400 text-xs shadow-[0_0_8px_rgba(74,222,128,0.8)]"></i> ONLINE`;
+                    conn.classList.add('text-green-400');
+                    conn.classList.remove('text-gray-400');
+                } else {
+                    conn.innerHTML = `<i class="fas fa-circle text-red-500 text-xs shadow-[0_0_8px_rgba(239,68,68,0.8)]"></i> OFFLINE`;
+                    conn.classList.remove('text-green-400');
+                    conn.classList.add('text-gray-400');
+                }
+
+                // Battery
+                const tel = data.telemetry;
+                document.getElementById('battery-text').innerText = `${tel.batteryLevel}%`;
+                document.getElementById('battery-bar').style.width = `${tel.batteryLevel}%`;
+                document.getElementById('charging-text').innerText = tel.isCharging ? 'Charging (AC/USB)' : 'Discharging';
+                
+                const batIcon = document.getElementById('battery-icon');
+                if (tel.isCharging) {
+                    batIcon.className = "fas fa-bolt text-xl text-yellow-400";
+                    document.getElementById('battery-bar').className = "bg-gradient-to-r from-yellow-400 to-yellow-500 h-3 rounded-full battery-fill";
+                } else {
+                    batIcon.className = `fas fa-battery-${tel.batteryLevel > 75 ? 'full' : tel.batteryLevel > 30 ? 'half' : 'quarter'} text-xl`;
+                    document.getElementById('battery-bar').className = `bg-gradient-to-r ${tel.batteryLevel > 20 ? 'from-green-400 to-emerald-500' : 'from-red-400 to-red-500'} h-3 rounded-full battery-fill`;
+                }
+
+                // Radios
+                const w = document.getElementById('wifi-status');
+                const wi = document.getElementById('wifi-icon');
+                if (tel.isWifiEnabled) {
+                    w.innerText = "ON"; w.className = "text-sm font-bold text-green-400";
+                    wi.className = "fas fa-wifi text-green-400";
+                } else {
+                    w.innerText = "OFF"; w.className = "text-sm font-bold text-gray-500";
+                    wi.className = "fas fa-wifi text-gray-500";
+                }
+
+                const b = document.getElementById('bt-status');
+                const bi = document.getElementById('bt-icon');
+                if (tel.isBluetoothEnabled) {
+                    b.innerText = "ON"; b.className = "text-sm font-bold text-blue-400";
+                    bi.className = "fab fa-bluetooth-b text-blue-400";
+                } else {
+                    b.innerText = "OFF"; b.className = "text-sm font-bold text-gray-500";
+                    bi.className = "fab fa-bluetooth text-gray-500";
+                }
+
+            } catch (e) {
+                console.error("Telemetry failed", e);
+            }
+        }
+
+        setInterval(pollTelemetry, 2000);
+        pollTelemetry();
+    </script>
+</body>
+</html>

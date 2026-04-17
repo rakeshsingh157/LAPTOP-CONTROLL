@@ -98,9 +98,15 @@ def shutdown_event():
         except Exception as e:
             print("Failed to send push notification on shutdown:", e)
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+
+# Mount the static directory to serve the PC dashboard
+app.mount("/dashboard", StaticFiles(directory="static", html=True), name="static")
+
 @app.get("/")
 def health_check():
-    return {"status": "ok", "message": "Stitch Dashboard Operational"}
+    return RedirectResponse(url="/dashboard/")
 
 if __name__ == "__main__":
     import uvicorn
