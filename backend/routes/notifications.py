@@ -17,6 +17,32 @@ async def receive_notification(request: Request):
     body = data.get("body", "")
     app_name = data.get("app_name", "Phone")
 
+    # --- SERVER-SIDE NOTIFICATION FILTER ---
+    blocked_apps = {
+        "spotify", "youtube music", "youtube", "soundcloud", "gaana",
+        "jiosaavn", "wynk", "hungama", "samsung music", "apple music",
+        "amazon music", "download manager", "downloads", "one ui home",
+        "system ui", "android system"
+    }
+    app_lower = app_name.lower()
+    title_lower = title.lower()
+    body_lower = body.lower()
+
+    # Block known spam apps
+    if any(b in app_lower for b in blocked_apps):
+        print(f"[🚫 BLOCKED] Filtered notification from: {app_name}")
+        return {"status": "filtered", "message": f"Blocked: {app_name}"}
+
+    # Block download notifications
+    if "download" in title_lower or "downloading" in body_lower:
+        print(f"[🚫 BLOCKED] Download notification: {title}")
+        return {"status": "filtered", "message": "Blocked: download notification"}
+
+    # Block media/music content
+    if any(w in title_lower for w in ["playing", "paused", "buffering"]) and any(w in app_lower for w in ["music", "media", "player"]):
+        print(f"[🚫 BLOCKED] Media notification: {title}")
+        return {"status": "filtered", "message": "Blocked: media notification"}
+
     print(f"\n[🔔 NOTIFICATION RECEIVED] App: {app_name} | Title: {title} | Body: {body}")
 
     # Save to history for the dashboard
