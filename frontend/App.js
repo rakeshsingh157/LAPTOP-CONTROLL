@@ -879,45 +879,56 @@ function TerminalScreen() {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-surface-dim`}>
-      <View style={tw`bg-surface-container-low px-6 py-4 flex-row items-center border-b border-surface-container-highest`}>
-        <Text style={tw`text-on-surface font-bold text-lg tracking-wider`}>TERMINAL_CONSOLE</Text>
-      </View>
-      
-      <ScrollView style={tw`flex-1 px-4 py-6 bg-black`} contentContainerStyle={{ paddingBottom: 20 }}>
-        {/* Boot message */}
-        <Text style={tw`text-secondary font-mono mb-2`}>Ubuntu 22.04.3 LTS (GNU/Linux 6.2.0-31-generic x86_64)</Text>
-        <Text style={tw`text-outline font-mono mb-6`}>Last login: {new Date().toLocaleString()} from 127.0.0.1</Text>
+      <KeyboardAvoidingView 
+        style={tw`flex-1`} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={tw`bg-surface-container-low px-6 py-4 flex-row items-center border-b border-surface-container-highest`}>
+          <Text style={tw`text-on-surface font-bold text-lg tracking-wider`}>TERMINAL_CONSOLE</Text>
+        </View>
         
-        {history.map((h, i) => (
-          <View key={i} style={tw`mb-4`}>
-            <View style={tw`flex-row flex-wrap items-center`}>
-              <Text style={tw`text-green-400 font-mono`}>rakesh-singh@rakesh-singh-Nuvobook-V1</Text>
-              <Text style={tw`text-on-surface font-mono`}>:</Text>
-              <Text style={tw`text-blue-400 font-mono font-bold`}>{h.path}</Text>
-              <Text style={tw`text-on-surface font-mono`}>$ {h.cmd}</Text>
+        <ScrollView style={tw`flex-1 px-4 py-6 bg-black`} contentContainerStyle={{ paddingBottom: 20 }}>
+          {/* Boot message */}
+          <Text style={tw`text-secondary font-mono mb-2`}>Ubuntu 22.04.3 LTS (GNU/Linux 6.2.0-31-generic x86_64)</Text>
+          <Text style={tw`text-outline font-mono mb-6`}>Last login: {new Date().toLocaleString()} from 127.0.0.1</Text>
+          
+          {history.map((h, i) => (
+            <View key={i} style={tw`mb-4`}>
+              <View style={tw`flex-row flex-wrap items-center`}>
+                <Text style={tw`text-green-400 font-mono`}>rakesh-singh@rakesh-singh-Nuvobook-V1</Text>
+                <Text style={tw`text-on-surface font-mono`}>:</Text>
+                <Text style={tw`text-blue-400 font-mono font-bold`}>{h.path}</Text>
+                <Text style={tw`text-on-surface font-mono`}>$ {h.cmd}</Text>
+              </View>
+              <Text style={tw`text-outline font-mono mt-1`}>{h.out}</Text>
             </View>
-            <Text style={tw`text-outline font-mono mt-1`}>{h.out}</Text>
-          </View>
-        ))}
-      </ScrollView>
-      <View style={tw`p-4 bg-surface-container-low flex-row items-center border-t border-surface-container-highest`}>
-        <Text style={tw`text-green-400 font-mono text-xs mr-1`}>rakesh:</Text>
-        <Text style={tw`text-blue-400 font-mono font-bold text-xs`}>{cwd}</Text>
-        <Text style={tw`text-secondary font-mono mr-3 text-xs`}>$</Text>
-        <TextInput
-          style={tw`flex-1 text-on-surface font-mono text-base py-2`}
-          placeholder="Enter system command..."
-          placeholderTextColor={tw.color('outline')}
-          value={cmd}
-          onChangeText={setCmd}
-          onSubmitEditing={executeCmd}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <TouchableOpacity onPress={executeCmd}>
-          <TerminalIcon color={tw.color('outline')} size={24} />
-        </TouchableOpacity>
-      </View>
+          ))}
+        </ScrollView>
+        <View style={tw`p-4 bg-surface-container-low flex-row items-center border-t border-surface-container-highest`}>
+          <Text style={tw`text-green-400 font-mono text-xs mr-1`}>rakesh:</Text>
+          <Text 
+            style={tw`text-blue-400 font-mono font-bold text-xs flex-shrink mr-1`} 
+            numberOfLines={1} 
+            ellipsizeMode="head"
+          >
+            {cwd}
+          </Text>
+          <Text style={tw`text-secondary font-mono mr-2 text-xs`}>$</Text>
+          <TextInput
+            style={tw`flex-1 text-on-surface font-mono text-base py-2`}
+            placeholder="Enter system command..."
+            placeholderTextColor={tw.color('outline')}
+            value={cmd}
+            onChangeText={setCmd}
+            onSubmitEditing={executeCmd}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <TouchableOpacity onPress={executeCmd}>
+            <TerminalIcon color={tw.color('outline')} size={24} />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
