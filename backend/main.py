@@ -26,7 +26,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import system, notifications, screen_share, input_control
 
-app = FastAPI(title="Stitch Cloud Dashboard API")
+app = FastAPI(title="Rakesh Ecosystem Dashboard API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,8 +42,18 @@ app.include_router(screen_share.router, prefix="/api/share", tags=["Screen Share
 app.include_router(input_control.router, prefix="/api/input", tags=["Remote Control"])
 
 
+import multiprocessing
+import subprocess
+tray_process = None
+
 @app.on_event("startup")
 def startup_event():
+    global tray_process
+    try:
+        tray_process = subprocess.Popen(["/home/rakesh-singh/Documents/LAPTOP_ACCESS/backend/venv/bin/python", "tray.py"])
+    except Exception as e:
+        print("Failed to spawn tray icon:", e)
+
     token_file = "push_token.txt"
     if os.path.exists(token_file):
         try:
@@ -72,6 +82,13 @@ def startup_event():
 
 @app.on_event("shutdown")
 def shutdown_event():
+    global tray_process
+    if tray_process:
+        try:
+            tray_process.terminate()
+        except:
+            pass
+
     token_file = "push_token.txt"
     if os.path.exists(token_file):
         try:

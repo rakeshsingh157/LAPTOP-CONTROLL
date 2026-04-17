@@ -4,6 +4,11 @@ import os
 
 router = APIRouter()
 
+from typing import List, Dict
+from datetime import datetime
+
+NOTIFICATIONS_HISTORY: List[Dict] = []
+
 @router.post("/send_to_desktop")
 async def receive_notification(request: Request):
     """Receive a notification from the mobile app and display it on the desktop."""
@@ -13,6 +18,16 @@ async def receive_notification(request: Request):
     app_name = data.get("app_name", "Phone")
 
     print(f"\n[🔔 NOTIFICATION RECEIVED] App: {app_name} | Title: {title} | Body: {body}")
+
+    # Save to history for the dashboard
+    NOTIFICATIONS_HISTORY.insert(0, {
+        "app_name": app_name,
+        "title": title,
+        "body": body,
+        "time": datetime.now().strftime("%I:%M %p")
+    })
+    if len(NOTIFICATIONS_HISTORY) > 30:
+        NOTIFICATIONS_HISTORY.pop()
 
     # Build environment with proper display/session vars for notify-send
     env = os.environ.copy()
@@ -68,3 +83,7 @@ def _find_user_pid():
         return result.stdout.strip().split('\n')[0]
     except Exception:
         return "1"
+
+@router.get("/history")
+def get_notification_history():
+    return {"notifications": NOTIFICATIONS_HISTORY}
