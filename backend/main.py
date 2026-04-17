@@ -8,6 +8,19 @@ if not os.environ.get("DISPLAY"):
 if not os.environ.get("XAUTHORITY"):
     os.environ["XAUTHORITY"] = "/home/rakesh-singh/.Xauthority"
 
+# Fix systemd stripping PATH / audio / dbus environment
+_uid = os.getuid()
+if _uid == 0:
+    _uid = 1000
+if not os.environ.get("PATH") or "/usr/bin" not in os.environ["PATH"]:
+    os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/home/rakesh-singh/.local/bin"
+if not os.environ.get("XDG_RUNTIME_DIR"):
+    os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{_uid}"
+if not os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
+    os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{_uid}/bus"
+if not os.environ.get("PULSE_SERVER"):
+    os.environ["PULSE_SERVER"] = f"unix:/run/user/{_uid}/pulse/native"
+
 from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware

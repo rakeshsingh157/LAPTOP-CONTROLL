@@ -246,6 +246,32 @@ function DashboardScreen() {
   const [tempApi, setTempApi] = useState('');
 
   useEffect(() => {
+    async function requestPermissions() {
+      if (Platform.OS === 'android') {
+        try {
+          // Step 1: Request foreground location ("While using the app")
+          const fgResult = await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+          ]);
+          
+          // Step 2: If foreground granted, request background ("Allow all the time")
+          const fineGranted = fgResult[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] === PermissionsAndroid.RESULTS.GRANTED;
+          if (fineGranted && PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION) {
+            await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+              {
+                title: "Background Location Required",
+                message: "Allow 'All the time' location access so Find My Phone can track your device even when the app is closed.",
+                buttonPositive: "Allow",
+              }
+            );
+          }
+        } catch (err) { }
+      }
+    }
+    requestPermissions();
+
     let ws;
     let isActive = true;
     const connect = () => {
@@ -482,14 +508,64 @@ function DashboardScreen() {
             <Shield color={tw.color('red-400')} size={18} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openDeviceAdminSettings()} style={tw`bg-surface-container py-3 px-4 rounded-md flex-row justify-between items-center`}>
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openDeviceAdminSettings()} style={tw`bg-surface-container py-3 px-4 rounded-md mb-2 flex-row justify-between items-center`}>
             <View>
               <Text style={tw`text-purple-400 font-bold text-sm`}>5. Enterprise: Device Admin</Text>
               <Text style={tw`text-purple-400/70 text-xs mt-0.5`}>Prevent uninstalls and memory wipes</Text>
             </View>
             <Lock color={tw.color('purple-400')} size={18} />
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openDNDSettings()} style={tw`bg-surface-container py-3 px-4 rounded-md mb-2 flex-row justify-between items-center`}>
+            <View>
+              <Text style={tw`text-orange-400 font-bold text-sm`}>6. Do Not Disturb Override</Text>
+              <Text style={tw`text-orange-400/70 text-xs mt-0.5`}>Let FIND MY DEVICE ring on silent mode</Text>
+            </View>
+            <Lock color={tw.color('orange-400')} size={18} />
+          </TouchableOpacity>
         </View>
+
+        {/* FIND MY LAPTOP SIREN */}
+        <TouchableOpacity 
+          onPress={async () => {
+             Alert.alert(
+                "Find My Laptop",
+                "Start loud ringing alarm on your Ubuntu PC?",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Ring Loudly", style: "destructive", onPress: async () => {
+                      try { 
+                          await axios.post(`${apiBase}/laptop/ring`); 
+                      } catch(e) {
+                          Alert.alert("Network Error", "Could not reach laptop: " + e.message);
+                      }
+                  }}
+                ]
+             );
+          }}
+          style={tw`bg-red-500/20 p-5 rounded-md mb-8 flex-row items-center border border-red-500`}
+        >
+           <AlertTriangle color={tw.color('red-400')} size={24} style={tw`mr-3`} />
+           <View style={tw`flex-1`}>
+             <Text style={tw`text-red-400 font-bold text-lg mb-1 tracking-wider`}>FIND MY LAPTOP</Text>
+             <Text style={tw`text-red-400/80 text-xs`}>Triggers maximum volume alarm buzzer directly on the PC speakers.</Text>
+           </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          onPress={async () => {
+            try { 
+              await axios.post(`${apiBase}/laptop/stop_ring`); 
+              Alert.alert("Done", "Laptop alarm stopped.");
+            } catch(e) {
+              Alert.alert("Error", "Could not reach laptop: " + e.message);
+            }
+          }}
+          style={tw`bg-green-500/20 p-4 rounded-md mb-8 flex-row items-center border border-green-500`}
+        >
+           <X color={tw.color('green-400')} size={20} style={tw`mr-3`} />
+           <Text style={tw`text-green-400 font-bold text-base`}>STOP LAPTOP RINGING</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -779,15 +855,24 @@ function TerminalScreen() {
   const { apiBase } = useContext(ApiContext);
   const [cmd, setCmd] = useState('');
   const [history, setHistory] = useState([]);
+  const [cwd, setCwd] = useState('~');
 
   const executeCmd = async () => {
     if (!cmd.trim()) return;
     try {
       const res = await axios.post(`${apiBase}/terminal?command=${encodeURIComponent(cmd)}`);
-      setHistory(h => [...h, { cmd, out: res.data.stdout || res.data.error || res.data.stderr }]);
+      
+      let newCwd = res.data.cwd || cwd;
+      // Format /home/rakesh-singh as ~
+      if (newCwd.startsWith('/home/rakesh-singh')) {
+          newCwd = newCwd.replace('/home/rakesh-singh', '~');
+      }
+      
+      setHistory(h => [...h, { cmd, out: res.data.stdout || res.data.error || res.data.stderr, path: cwd }]);
+      setCwd(newCwd);
       setCmd('');
     } catch (e) {
-      setHistory(h => [...h, { cmd, out: "Process failed or access denied." }]);
+      setHistory(h => [...h, { cmd, out: "Process failed or access denied.", path: cwd }]);
       setCmd('');
     }
   };
@@ -800,21 +885,25 @@ function TerminalScreen() {
       
       <ScrollView style={tw`flex-1 px-4 py-6 bg-black`} contentContainerStyle={{ paddingBottom: 20 }}>
         {/* Boot message */}
-        <Text style={tw`text-secondary font-mono mb-2`}>CORE-OS(tm) Kernel 6.2.0-31-generic (x86_64)</Text>
+        <Text style={tw`text-secondary font-mono mb-2`}>Ubuntu 22.04.3 LTS (GNU/Linux 6.2.0-31-generic x86_64)</Text>
         <Text style={tw`text-outline font-mono mb-6`}>Last login: {new Date().toLocaleString()} from 127.0.0.1</Text>
         
         {history.map((h, i) => (
           <View key={i} style={tw`mb-4`}>
-            <View style={tw`flex-row flex-wrap`}>
-              <Text style={tw`text-primary font-mono`}>root@the-core</Text>
-              <Text style={tw`text-on-surface font-mono`}> : ~ $ {h.cmd}</Text>
+            <View style={tw`flex-row flex-wrap items-center`}>
+              <Text style={tw`text-green-400 font-mono`}>rakesh-singh@rakesh-singh-Nuvobook-V1</Text>
+              <Text style={tw`text-on-surface font-mono`}>:</Text>
+              <Text style={tw`text-blue-400 font-mono font-bold`}>{h.path}</Text>
+              <Text style={tw`text-on-surface font-mono`}>$ {h.cmd}</Text>
             </View>
             <Text style={tw`text-outline font-mono mt-1`}>{h.out}</Text>
           </View>
         ))}
       </ScrollView>
-      <View style={tw`p-4 bg-surface-container-low flex-row items-center`}>
-        <Text style={tw`text-secondary font-mono mr-3`}>$</Text>
+      <View style={tw`p-4 bg-surface-container-low flex-row items-center border-t border-surface-container-highest`}>
+        <Text style={tw`text-green-400 font-mono text-xs mr-1`}>rakesh:</Text>
+        <Text style={tw`text-blue-400 font-mono font-bold text-xs`}>{cwd}</Text>
+        <Text style={tw`text-secondary font-mono mr-3 text-xs`}>$</Text>
         <TextInput
           style={tw`flex-1 text-on-surface font-mono text-base py-2`}
           placeholder="Enter system command..."

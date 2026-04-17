@@ -46,24 +46,26 @@ def get_system_metrics():
 def execute_command(command: str):
     global CURRENT_DIR
     try:
-        # Full unrestricted access to the terminal
+        # Wrap the command so bash tells us where it ended up after executing.
+        # This makes commands like `cd -`, `pushd`, etc. work perfectly natively.
+        wrapped_cmd = f"source ~/.bashrc 2>/dev/null; {command}\nRET=$?\npwd\nexit $RET"
         
-        # Handle custom cd command to maintain state
-        if command.strip() == "cd":
-            CURRENT_DIR = os.path.expanduser("~")
-            return {"stdout": "", "stderr": "", "cwd": CURRENT_DIR}
-        elif command.strip().startswith("cd "):
-            target_path = command.strip()[3:].strip()
-            new_dir = os.path.abspath(os.path.join(CURRENT_DIR, os.path.expanduser(target_path)))
-            if os.path.isdir(new_dir):
-                CURRENT_DIR = new_dir
-                return {"stdout": "", "stderr": "", "cwd": CURRENT_DIR}
+        result = subprocess.run(wrapped_cmd, shell=True, executable='/bin/bash', capture_output=True, text=True, cwd=CURRENT_DIR)
+        
+        lines = result.stdout.splitlines()
+        stdout = ""
+        
+        if lines:
+            possible_pwd = lines[-1].strip()
+            if os.path.isdir(possible_pwd):
+                # The command successfully printed a directory at the end
+                CURRENT_DIR = possible_pwd
+                stdout = "\n".join(lines[:-1])
+                if len(lines) > 1: stdout += "\n"
             else:
-                return {"stdout": "", "stderr": f"cd: {target_path}: No such file or directory", "cwd": CURRENT_DIR}
-
-        # Execute standard commands with cwd
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, cwd=CURRENT_DIR, timeout=5)
-        return {"stdout": result.stdout, "stderr": result.stderr, "cwd": CURRENT_DIR}
+                stdout = result.stdout
+                
+        return {"stdout": stdout, "stderr": result.stderr, "cwd": CURRENT_DIR}
     except Exception as e:
         return {"error": str(e), "cwd": CURRENT_DIR}
 
@@ -194,9 +196,9 @@ class ClipboardData(BaseModel):
 def get_clipboard():
     try:
         # Check if it's an image
-        res_targets = subprocess.run(['xclip', '-selection', 'clipboard', '-t', 'TARGETS', '-o'], capture_output=True, text=True)
+        res_targets = subprocess.run(['/usr/bin/xclip', '-selection', 'clipboard', '-t', 'TARGETS', '-o'], capture_output=True, text=True)
         if "image/png" in res_targets.stdout or "image/" in res_targets.stdout:
-            res_img = subprocess.run(['xclip', '-selection', 'clipboard', '-t', 'image/png', '-o'], capture_output=True)
+            res_img = subprocess.run(['/usr/bin/xclip', '-selection', 'clipboard', '-t', 'image/png', '-o'], capture_output=True)
             if res_img.returncode == 0 and len(res_img.stdout) > 0:
                 b64 = base64.b64encode(res_img.stdout).decode('utf-8')
                 return {"type": "image", "content": b64}
@@ -214,7 +216,7 @@ def set_clipboard(data: ClipboardData):
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
                 f.write(img_bytes)
                 f.flush()
-                subprocess.run(['xclip', '-selection', 'clipboard', '-t', 'image/png', '-i', f.name])
+                subprocess.run(['/usr/bin/xclip', '-selection', 'clipboard', '-t', 'image/png', '-i', f.name])
             return {"success": True}
         else:
             pyperclip.copy(data.content)
@@ -401,3 +403,71 @@ async def screen_stream(websocket: WebSocket):
         import traceback
         traceback.print_exc()
         await websocket.close()
+
+# ---- FIND MY DEVICE ROUTES ----
+
+PHONE_WS_CONNECTION = None
+
+@router.websocket("/phone_ws")
+async def phone_command_ws(websocket: WebSocket):
+    global PHONE_WS_CONNECTION
+    await websocket.accept()
+    PHONE_WS_CONNECTION = websocket
+    print("📱 Phone Command WS Connected to Desktop")
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Write to a swap file so CLI can pick up async responses (like location URLs)
+            with open("/tmp/phone_cmd_response.json", "w") as f:
+                f.write(data)
+            print(f"[PHONE CMD] {data}")
+    except WebSocketDisconnect:
+        PHONE_WS_CONNECTION = None
+        print("📱 Phone Command WS Disconnected")
+
+class PhoneCmd(BaseModel):
+    action: str
+
+@router.post("/send_phone_cmd")
+async def send_phone_cmd(cmd: PhoneCmd):
+    global PHONE_WS_CONNECTION
+    if PHONE_WS_CONNECTION is None:
+        raise HTTPException(status_code=503, detail="Phone is not connected to Desktop API")
+    await PHONE_WS_CONNECTION.send_text(json.dumps({"action": cmd.action}))
+    return {"success": True, "message": f"Sent '{cmd.action}' to phone"}
+
+laptop_ring_process = None
+
+@router.post("/laptop/ring")
+def laptop_ring():
+    global laptop_ring_process
+    if laptop_ring_process is None or laptop_ring_process.poll() is not None:
+        # Build env with audio session access (systemd strips these)
+        env = os.environ.copy()
+        uid = os.getuid()
+        if uid == 0:
+            uid = 1000
+        env["XDG_RUNTIME_DIR"] = f"/run/user/{uid}"
+        env["PULSE_SERVER"] = f"unix:/run/user/{uid}/pulse/native"
+        if "DBUS_SESSION_BUS_ADDRESS" not in env:
+            env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{uid}/bus"
+
+        # Force unmute and max volume (bypass mute state)
+        subprocess.run(["/usr/bin/amixer", "set", "Master", "unmute"], env=env, capture_output=True)
+        subprocess.run(["/usr/bin/amixer", "set", "Master", "100%"], env=env, capture_output=True)
+
+        # Play a loud piercing sine wave via speaker-test
+        cmd = ["/usr/bin/speaker-test", "-t", "sine", "-f", "1000", "-l", "0"]
+        laptop_ring_process = subprocess.Popen(cmd, env=env)
+    return {"success": True}
+
+@router.post("/laptop/stop_ring")
+def laptop_stop_ring():
+    global laptop_ring_process
+    if laptop_ring_process and laptop_ring_process.poll() is None:
+        laptop_ring_process.kill()  # SIGKILL = instant death
+        laptop_ring_process = None
+    # Safety net: kill any orphan speaker-test processes
+    subprocess.run(["/usr/bin/pkill", "-9", "speaker-test"], capture_output=True)
+    return {"success": True}
+
