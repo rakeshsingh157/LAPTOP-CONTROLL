@@ -3,126 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stitch Phone Ecosystem Dashboard</title>
+    <title>Rakesh Ecosystem — Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
                     colors: {
-                        dark: '#0a0a0a',
-                        surface: 'rgba(255, 255, 255, 0.05)',
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#bae0fd',
+                            300: '#7cc3fb',
+                            400: '#38a1f8',
+                            500: '#0e82ec',
+                            600: '#0265cb',
+                            700: '#0351a4',
+                            800: '#074586',
+                            900: '#0c3b6f',
+                            950: '#08254b',
+                        },
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #0a0a0a; color: white; display: flex; flex-direction: column; min-height: 100vh; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
-        .battery-fill { transition: width 0.5s ease-in-out; }
+        :root { --bg: #030712; }
+        body { 
+            background-color: var(--bg); 
+            color: #f3f4f6; 
+            background-image: radial-gradient(circle at 2% 2%, rgba(56, 161, 248, 0.15) 0%, transparent 40%),
+                              radial-gradient(circle at 98% 98%, rgba(139, 92, 246, 0.15) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+        .glass-panel { 
+            background: rgba(17, 24, 39, 0.7); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(56, 161, 248, 0.3);
+        }
+        .glow-text { text-shadow: 0 0 20px rgba(56, 161, 248, 0.5); }
+        .battery-progress { transition: width 1s ease-in-out; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="p-8">
+<body class="p-4 md:p-8 selection:bg-brand-500 selection:text-white">
 
-    <header class="mb-8 flex justify-between items-center bg-transparent border-b border-gray-800 pb-4">
+    <!-- Header Section -->
+    <div class="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">Rakesh Ecosystem</h1>
-            <p class="text-gray-400 text-sm mt-1">Live Telemetry from Phone</p>
-        </div>
-        <div id="conn-status" class="flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-gray-400">
-            <i class="fas fa-circle text-red-500 text-xs shadow-[0_0_8px_rgba(239,68,68,0.8)]"></i> OFFLINE
-        </div>
-    </header>
-
-    <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto w-full">
-        
-        <!-- Battery Card -->
-        <div class="glass p-6 flex flex-col justify-between">
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                    <h2 class="text-lg text-gray-300 font-semibold mb-1">Battery Status</h2>
-                    <p id="charging-text" class="text-xs text-gray-500">Discharging</p>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="h-10 w-10 bg-brand-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(14,130,236,0.4)]">
+                    <i class="fas fa-microchip text-white text-xl"></i>
                 </div>
-                <div class="p-3 bg-green-500/10 rounded-xl text-green-400">
-                    <i id="battery-icon" class="fas fa-battery-full text-xl"></i>
+                <h1 class="text-4xl font-extrabold tracking-tight text-white glow-text">RAKESH<span class="text-brand-400 font-light italic">CORE</span></h1>
+            </div>
+            <p class="text-gray-400 font-medium tracking-wide flex items-center gap-2">
+                <span id="system-time" class="font-mono text-brand-400">00:00:00</span>
+                <span class="h-1 w-1 bg-gray-600 rounded-full"></span>
+                <span>NEURAL LINK ESTABLISHED</span>
+            </p>
+        </div>
+        
+        <div id="conn-status" class="flex items-center gap-4 px-6 py-3 rounded-2xl glass-panel border-l-4 border-l-red-500">
+            <div class="relative">
+                <div class="h-3 w-3 bg-red-500 rounded-full animate-pulse"></div>
+                <div class="absolute inset-0 h-3 w-3 bg-red-500 rounded-full blur-sm opacity-50"></div>
+            </div>
+            <div>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-1">Status</p>
+                <p class="text-sm font-bold text-gray-300 tracking-tighter leading-none">OFFLINE</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <main class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- Sidebar: Critical Stats -->
+        <div class="md:col-span-4 space-y-6">
+            <!-- Battery Glass -->
+            <div class="glass-panel p-8 rounded-3xl relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <i class="fas fa-bolt text-8xl text-white"></i>
+                </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Power Matrix</h2>
+                    <span id="charging-badge" class="px-3 py-1 bg-gray-800 text-[10px] font-bold rounded-full text-gray-400 border border-white/5">DISCHARGING</span>
+                </div>
+                <div class="flex items-end gap-2 mb-4">
+                    <span id="battery-text" class="text-6xl font-extrabold text-white tracking-tighter">--</span>
+                    <span class="text-2xl font-bold text-gray-600 mb-2">%</span>
+                </div>
+                <div class="h-4 w-full bg-gray-950 rounded-full p-1 border border-white/5">
+                    <div id="battery-bar" class="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full battery-progress shadow-[0_0_15px_rgba(14,130,236,0.3)]" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Connectivity Grid -->
+            <div class="glass-panel p-6 rounded-3xl">
+                <h2 class="text-sm font-bold uppercase tracking-[0.2em] text-gray-400 mb-6">Radio Array</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div id="radio-wifi" onclick="sendCmd('toggle_wifi')" class="stat-card p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-3 cursor-pointer active:scale-95 transition">
+                        <div class="flex items-center justify-between">
+                            <i id="wifi-icon" class="fas fa-wifi text-gray-500"></i>
+                            <span class="text-[8px] font-bold text-gray-600 uppercase">tap to toggle</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-500">WI-FI</p>
+                            <p id="wifi-status" class="text-xs font-bold text-gray-400">DETECTING...</p>
+                        </div>
+                    </div>
+                    <div id="radio-bt" onclick="sendCmd('toggle_bluetooth')" class="stat-card p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-3 cursor-pointer active:scale-95 transition">
+                        <div class="flex items-center justify-between">
+                            <i id="bt-icon" class="fab fa-bluetooth-b text-gray-500"></i>
+                            <span class="text-[8px] font-bold text-gray-600 uppercase">tap to toggle</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-500">BT</p>
+                            <p id="bt-status" class="text-xs font-bold text-gray-400">OFF</p>
+                        </div>
+                    </div>
+                    <div id="radio-air" onclick="sendCmd('toggle_airplane')" class="stat-card p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-3 cursor-pointer active:scale-95 transition">
+                        <div class="flex items-center justify-between">
+                            <i id="air-icon" class="fas fa-plane text-gray-500"></i>
+                            <span class="text-[8px] font-bold text-gray-600 uppercase">tap to toggle</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-500">FLIGHT</p>
+                            <p id="air-status" class="text-xs font-bold text-gray-400">OFF</p>
+                        </div>
+                    </div>
+                    <div id="radio-dnd" onclick="sendCmd('toggle_dnd')" class="stat-card p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-3 cursor-pointer active:scale-95 transition">
+                        <div class="flex items-center justify-between">
+                            <i id="dnd-icon" class="fas fa-moon text-gray-500"></i>
+                            <span class="text-[8px] font-bold text-gray-600 uppercase">tap to toggle</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-500">DND</p>
+                            <p id="dnd-status" class="text-xs font-bold text-gray-400">OFF</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="mt-4">
-                <div class="flex justify-between text-2xl font-bold mb-2">
-                    <span id="battery-text">--%</span>
-                </div>
-                <div class="w-full bg-gray-800 rounded-full h-3">
-                    <div id="battery-bar" class="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full battery-fill" style="width: 0%"></div>
+            <!-- Security Shield -->
+            <div class="glass-panel p-6 rounded-3xl border border-brand-500/10">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div id="shield-indicator" class="h-12 w-12 rounded-2xl bg-gray-800 flex items-center justify-center border border-white/5">
+                            <i id="shield-icon" class="fas fa-shield-halved text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-white uppercase tracking-wider">Theft Shield</p>
+                            <p id="shield-status" class="text-[10px] font-bold text-gray-500 tracking-tighter">WAITING FOR REQUISITION</p>
+                        </div>
+                    </div>
+                    <div id="loc-dot" class="h-3 w-3 bg-gray-700 rounded-full"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Connectivity Card -->
-        <div class="glass p-6">
-            <h2 class="text-lg text-gray-300 font-semibold mb-6">Connectivity & Radios</h2>
-            <div class="space-y-4">
-                <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <i id="wifi-icon" class="fas fa-wifi text-gray-400"></i>
-                        <span class="font-medium text-gray-300">Wi-Fi</span>
-                    </div>
-                    <span id="wifi-status" class="text-sm font-bold text-gray-400">OFF</span>
+        <!-- Center Column: Visual Mapping & Tracking -->
+        <div class="md:col-span-5 space-y-6">
+            <div class="glass-panel p-2 rounded-[2rem] h-[450px] relative group border border-white/10">
+                <h2 class="absolute top-6 left-8 z-10 text-xs font-bold uppercase tracking-[0.3em] text-white/50 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">Dynamic Tracking Engaged</h2>
+                
+                <div id="map-fallback" class="absolute inset-0 flex flex-col items-center justify-center opacity-40">
+                    <i class="fas fa-satellite text-4xl mb-4 text-brand-500"></i>
+                    <p class="font-mono text-[10px] tracking-widest uppercase">Initializing Sat-Link...</p>
                 </div>
-                <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <i id="bt-icon" class="fab fa-bluetooth-b text-gray-400"></i>
-                        <span class="font-medium text-gray-300">Bluetooth</span>
+
+                <iframe id="map-frame" class="w-full h-full rounded-[1.8rem] opacity-0 transition-opacity duration-1000 border-none saturate-[0.8] contrast-[1.1]" src=""></iframe>
+
+                <div class="absolute bottom-6 left-6 right-6 flex items-center justify-between gap-4">
+                    <div class="glass-panel px-4 py-3 rounded-2xl border border-white/5 flex-1 max-w-[200px]">
+                        <p class="text-[9px] font-bold text-gray-500 uppercase mb-1">Geo-Position</p>
+                        <p id="coord-text" class="font-mono text-xs text-brand-400 truncate tracking-tighter font-bold">--.----, --.----</p>
                     </div>
-                    <span id="bt-status" class="text-sm font-bold text-gray-400">OFF</span>
+                    <button onclick="sendCmd('location')" class="h-14 w-14 rounded-2xl bg-brand-500 text-white shadow-[0_0_30px_rgba(14,130,236,0.5)] hover:bg-brand-400 transition flex items-center justify-center group/btn">
+                        <i class="fas fa-location-crosshairs text-xl group-hover/btn:rotate-90 transition-transform"></i>
+                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- System Controls Card -->
-        <div class="glass p-6">
-            <h2 class="text-lg text-gray-300 font-semibold mb-6">Phone Controls</h2>
-            <div class="space-y-4">
-                <!-- Music Controls -->
-                <div class="p-4 bg-gray-800/50 rounded-xl">
-                    <p class="text-xs text-gray-500 mb-3 font-semibold uppercase tracking-wider">Media Controls</p>
-                    <div class="flex items-center justify-between">
-                        <button onclick="sendCmd('media_prev')" class="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition"><i class="fas fa-backward-step"></i></button>
-                        <button onclick="sendCmd('media_play_pause')" class="p-4 text-white bg-blue-500 hover:bg-blue-600 rounded-full transition shadow-[0_0_15px_rgba(59,130,246,0.5)]"><i class="fas fa-play"></i> / <i class="fas fa-pause"></i></button>
-                        <button onclick="sendCmd('media_next')" class="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition"><i class="fas fa-forward-step"></i></button>
-                    </div>
-                </div>
-                <!-- Find Phone -->
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="sendCmd('ring')" class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition flex items-center justify-center gap-2 group">
-                        <i class="fas fa-bell text-red-400"></i>
-                        <p class="text-red-300 font-medium text-xs">Ring</p>
-                    </button>
-                    <button onclick="sendCmd('stop_ring')" class="p-3 rounded-lg bg-gray-500/10 border border-gray-500/20 hover:bg-gray-500/20 transition flex items-center justify-center gap-2 group">
-                        <i class="fas fa-bell-slash text-gray-400"></i>
-                        <p class="text-gray-300 font-medium text-xs">Stop Ring</p>
-                    </button>
-                </div>
-                <button onclick="sendCmd('location')" class="w-full p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition flex items-center justify-center gap-2 group">
-                    <i class="fas fa-map-marker-alt text-blue-400"></i>
-                    <p class="text-blue-300 font-medium text-sm">Request GPS Location</p>
+            <!-- Dashboard Interaction -->
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="sendCmd('ring')" class="p-5 rounded-3xl glass-panel border border-red-500/20 hover:bg-red-500/10 transition group text-left">
+                    <i class="fas fa-bell-on text-red-500 text-2xl mb-3 group-hover:scale-110 transition"></i>
+                    <p class="text-xs font-bold uppercase text-white mb-1">Theft Alert</p>
+                    <p class="text-[10px] text-gray-500 leading-tight">Trigger Force Alarm Signal</p>
+                </button>
+                <button onclick="sendCmd('stop_ring')" class="p-5 rounded-3xl glass-panel border border-emerald-500/20 hover:bg-emerald-500/10 transition group text-left">
+                    <i class="fas fa-bell-slash text-emerald-500 text-2xl mb-3 group-hover:scale-110 transition"></i>
+                    <p class="text-xs font-bold uppercase text-white mb-1">Dismiss Alarm</p>
+                    <p class="text-[10px] text-gray-500 leading-tight">Mute Terminal Siren</p>
                 </button>
             </div>
         </div>
 
-        <!-- Notification Center -->
-        <div class="glass p-6 md:col-span-2 lg:col-span-3">
-            <h2 class="text-lg text-gray-300 font-semibold mb-4">Notification Center</h2>
-            <div id="notif-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                <p class="text-gray-500 text-sm text-center py-4">Awaiting notifications...</p>
+        <!-- Right Column: Media, Network & Feed -->
+        <div class="md:col-span-3 space-y-6">
+            <!-- Media Player -->
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group">
+                <div id="media-glow" class="absolute -bottom-10 -right-10 h-32 w-32 bg-brand-500/10 blur-[50px] rounded-full transition-all group-hover:bg-brand-500/20"></div>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="h-1.5 w-1.5 bg-brand-400 rounded-full animate-pulse"></div>
+                    <h2 class="text-sm font-bold uppercase tracking-widest text-gray-400">Current Feed</h2>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 id="song-title" class="text-xl font-bold text-white tracking-tight leading-tight truncate">No Music Found</h3>
+                    <p id="artist-name" class="text-xs text-brand-400 font-medium tracking-wide truncate">Neural Stream Offline</p>
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
+                    <button onclick="sendCmd('media_prev')" class="h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 transition text-gray-400"><i class="fas fa-backward"></i></button>
+                    <button onclick="sendCmd('media_play_pause')" class="h-12 w-12 rounded-2xl bg-white text-black hover:scale-105 transition shadow-lg flex items-center justify-center p-0"><i class="fas fa-play ml-1"></i></button>
+                    <button onclick="sendCmd('media_next')" class="h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 transition text-gray-400"><i class="fas fa-forward"></i></button>
+                </div>
             </div>
+
+            <!-- Hardware Quick Toggles -->
+             <div class="glass-panel p-6 rounded-3xl">
+                <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-4">Hardware Control</h2>
+                <div class="flex flex-col gap-2">
+                    <button onclick="sendCmd('toggle_flashlight')" class="flex items-center justify-between p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition border border-white/5">
+                        <span class="text-xs font-bold text-gray-300">FLASH LIGHT</span>
+                        <i class="fas fa-lightbulb text-brand-400 text-sm"></i>
+                    </button>
+                    <div class="grid grid-cols-3 gap-1 mt-2">
+                         <button onclick="sendCmd('ringer_normal')" class="py-2.5 rounded-xl bg-gray-900 text-[9px] font-bold hover:bg-brand-500 transition border border-white/5">RING</button>
+                         <button onclick="sendCmd('ringer_vibrate')" class="py-2.5 rounded-xl bg-gray-900 text-[9px] font-bold hover:bg-brand-500 transition border border-white/5">VIBE</button>
+                         <button onclick="sendCmd('ringer_silent')" class="py-2.5 rounded-xl bg-gray-900 text-[9px] font-bold hover:bg-brand-500 transition border border-white/5">MUTE</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
+        <!-- Alert Feed — Full Width -->
+        <div class="md:col-span-12 glass-panel p-8 rounded-3xl h-[400px] flex flex-col">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-sm font-bold uppercase tracking-[0.2em] text-gray-400"><i class="fas fa-bell mr-2 text-brand-400"></i>Live Alert Stream</h2>
+                <span id="notif-count" class="h-6 w-6 bg-brand-500/20 text-xs text-brand-400 flex items-center justify-center rounded-full font-bold border border-brand-500/30">0</span>
+            </div>
+            <div id="notif-list" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                <p class="text-sm text-gray-600 font-mono text-center mt-10">--- SCANNING ENCRYPTED FREQUENCY ---</p>
+            </div>
+        </div>
     </main>
 
     <script>
+        // Update Time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('system-time').innerText = now.toTimeString().split(' ')[0];
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
         async function sendCmd(action) {
             try {
                 await fetch('/api/system/send_phone_cmd', {
@@ -130,10 +288,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action })
                 });
-                if(action === 'location') alert("GPS request sent to phone. Location link will appear in your notifications.");
-            } catch(e) {
-                alert("Failed to send command.");
-            }
+                if(action === 'location') console.log("Requesting satellite fix...");
+            } catch(e) { console.error("Neural link severed"); }
         }
 
         async function pollTelemetry() {
@@ -141,72 +297,106 @@
                 const res = await fetch('/api/system/phone_telemetry');
                 const data = await res.json();
                 
-                // Connection
+                // Connection Handling
                 const conn = document.getElementById('conn-status');
                 if (data.connected) {
-                    conn.innerHTML = `<i class="fas fa-circle text-green-400 text-xs shadow-[0_0_8px_rgba(74,222,128,0.8)]"></i> ONLINE`;
-                    conn.classList.add('text-green-400');
-                    conn.classList.remove('text-gray-400');
+                    conn.classList.remove('border-l-red-500', 'animate-pulse');
+                    conn.classList.add('border-l-brand-400');
+                    conn.querySelector('.bg-red-500')?.classList.replace('bg-red-500', 'bg-brand-400');
+                    conn.querySelector('.text-red-500')?.classList.replace('text-red-500', 'text-brand-400');
+                    conn.querySelector('p:last-child').innerText = data.telemetry?.carrierName || 'LINK: ACTIVE';
+                    conn.querySelector('p:last-child').classList.replace('text-gray-300', 'text-brand-400');
                 } else {
-                    conn.innerHTML = `<i class="fas fa-circle text-red-500 text-xs shadow-[0_0_8px_rgba(239,68,68,0.8)]"></i> OFFLINE`;
-                    conn.classList.remove('text-green-400');
-                    conn.classList.add('text-gray-400');
+                    conn.classList.add('border-l-red-500');
+                    conn.classList.remove('border-l-brand-400');
+                    conn.querySelector('p:last-child').innerText = 'OFFLINE';
+                    conn.querySelector('p:last-child').classList.replace('text-brand-400', 'text-gray-300');
                 }
 
-                // Battery & Radios (unchanged code logic)
+                if (!data.telemetry) return;
                 const tel = data.telemetry;
-                document.getElementById('battery-text').innerText = `${tel.batteryLevel}%`;
-                document.getElementById('battery-bar').style.width = `${tel.batteryLevel}%`;
-                document.getElementById('charging-text').innerText = tel.isCharging ? 'Charging (AC/USB)' : 'Discharging';
-                
-                const batIcon = document.getElementById('battery-icon');
-                if (tel.isCharging) {
-                    batIcon.className = "fas fa-bolt text-xl text-yellow-400";
-                    document.getElementById('battery-bar').className = "bg-gradient-to-r from-yellow-400 to-yellow-500 h-3 rounded-full battery-fill";
-                } else {
-                    batIcon.className = `fas fa-battery-${tel.batteryLevel > 75 ? 'full' : tel.batteryLevel > 30 ? 'half' : 'quarter'} text-xl`;
-                    document.getElementById('battery-bar').className = `bg-gradient-to-r ${tel.batteryLevel > 20 ? 'from-green-400 to-emerald-500' : 'from-red-400 to-red-500'} h-3 rounded-full battery-fill`;
+
+                // Power Matix
+                document.getElementById('battery-text').innerText = tel.batteryLevel;
+                document.getElementById('battery-bar').style.width = tel.batteryLevel + '%';
+                const bc = document.getElementById('charging-badge');
+                bc.innerText = tel.isCharging ? 'CHARGING CORE' : 'DISCHARGING';
+                bc.className = tel.isCharging ? 'px-3 py-1 bg-brand-500/20 text-[10px] font-bold rounded-full text-brand-400 border border-brand-500/30' : 'px-3 py-1 bg-gray-800 text-[10px] font-bold rounded-full text-gray-500 border border-white/5';
+
+                // Map & Loc logic
+                if (tel.lastLat && tel.lastLon) {
+                    document.getElementById('coord-text').innerText = `${tel.lastLat.toFixed(6)}, ${tel.lastLon.toFixed(6)}`;
+                    const mf = document.getElementById('map-frame');
+                    const mb = document.getElementById('map-fallback');
+                    const mapUrl = `https://maps.google.com/maps?q=${tel.lastLat},${tel.lastLon}&z=16&output=embed&t=k`;
+                    if(mf.src !== mapUrl) {
+                        mf.src = mapUrl;
+                        mf.onload = () => { mf.classList.replace('opacity-0', 'opacity-100'); mb.classList.add('hidden'); }
+                    }
                 }
 
-                const w = document.getElementById('wifi-status');
-                const wi = document.getElementById('wifi-icon');
-                if (tel.isWifiEnabled) {
-                    w.innerText = "ON"; w.className = "text-sm font-bold text-green-400"; wi.className = "fas fa-wifi text-green-400";
-                } else {
-                    w.innerText = "OFF"; w.className = "text-sm font-bold text-gray-500"; wi.className = "fas fa-wifi text-gray-500";
+                // Global Radios
+                const updateRadio = (id, active, accent) => {
+                    const el = document.getElementById('radio-'+id);
+                    const icon = document.getElementById(id+'-icon');
+                    const stat = document.getElementById(id+'-status');
+                    if(active) {
+                        el.classList.add('bg-'+accent+'-500/10', 'border-'+accent+'-500/30');
+                        icon.className = icon.className.replace('text-gray-500', 'text-'+accent+'-400');
+                        stat.innerText = 'ONLINE';
+                        stat.className = 'text-xs font-bold text-'+accent+'-400';
+                    } else {
+                        el.className = 'stat-card p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-3';
+                        icon.className = icon.dataset.baseClass || icon.className;
+                        stat.innerText = 'OFF';
+                        stat.className = 'text-xs font-bold text-gray-400';
+                    }
+                };
+
+                updateRadio('wifi', tel.isWifiEnabled, 'brand');
+                updateRadio('bt', tel.isBluetoothEnabled, 'brand');
+                updateRadio('air', tel.airplaneMode, 'orange');
+                updateRadio('dnd', tel.dndFilter > 1, 'purple');
+
+                // Shield
+                const si = document.getElementById('shield-indicator');
+                const ss = document.getElementById('shield-status');
+                const sic = document.getElementById('shield-icon');
+                if(tel.isTheftShieldEnabled) {
+                    si.className = "h-12 w-12 rounded-2xl bg-brand-500/20 flex items-center justify-center border border-brand-500/30 shadow-[0_0_15px_rgba(14,130,236,0.2)]";
+                    sic.className = "fas fa-shield-halved text-brand-400";
+                    ss.innerText = "SHIELD ENGAGED"; ss.className = "text-[10px] font-bold text-brand-400 tracking-tighter";
+                    document.getElementById('loc-dot').className = "h-3 w-3 bg-brand-400 rounded-full animate-ping";
                 }
 
-                const b = document.getElementById('bt-status');
-                const bi = document.getElementById('bt-icon');
-                if (tel.isBluetoothEnabled) {
-                    b.innerText = "ON"; b.className = "text-sm font-bold text-blue-400"; bi.className = "fab fa-bluetooth-b text-blue-400";
-                } else {
-                    b.innerText = "OFF"; b.className = "text-sm font-bold text-gray-500"; bi.className = "fab fa-bluetooth text-gray-500";
-                }
-            } catch (e) { console.error(e); }
+                // Music
+                document.getElementById('song-title').innerText = tel.songTitle || "SILENCE";
+                document.getElementById('artist-name').innerText = tel.artistName || "SYSTEM IDLE";
 
-            // Fetch Notifications History
+            } catch(e) {}
+
+            // Notifications
             try {
-                const histRes = await fetch('/api/notifications/history');
-                const histData = await histRes.json();
+                const hres = await fetch('/api/notifications/history');
+                const hdata = await hres.json();
                 const list = document.getElementById('notif-list');
-                
-                if(histData.notifications && histData.notifications.length > 0) {
-                    list.innerHTML = histData.notifications.map(n => `
-                        <div class="p-3 bg-gray-800/40 border border-gray-700/50 rounded-lg flex flex-col gap-1">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">${n.app_name}</span>
-                                <span class="text-xs text-gray-500">${n.time}</span>
-                            </div>
-                            <span class="text-sm font-semibold text-gray-200">${n.title}</span>
-                            <span class="text-xs text-gray-400 truncate">${n.body}</span>
+                if(hdata.notifications?.length) {
+                    document.getElementById('notif-count').innerText = hdata.notifications.length;
+                    list.innerHTML = hdata.notifications.map(n => `
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition">
+                             <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-brand-400 uppercase tracking-wider">${n.app_name}</span>
+                                <span class="text-xs text-gray-500 font-mono">${n.time}</span>
+                             </div>
+                             <p class="text-sm font-bold text-gray-100 mb-1">${n.title}</p>
+                             <p class="text-sm text-gray-400">${n.body || ''}</p>
                         </div>
-                    `).join('');
+                    `).reverse().join('');
                 }
-            } catch (e) { console.error(e); }
+            } catch(e) {}
         }
 
-        setInterval(pollTelemetry, 2000);
+        setInterval(pollTelemetry, 2500);
         pollTelemetry();
     </script>
 </body>

@@ -430,9 +430,28 @@ async def phone_command_ws(websocket: WebSocket):
                     PHONE_TELEMETRY["isCharging"] = msg.get("isCharging", False)
                     PHONE_TELEMETRY["isWifiEnabled"] = msg.get("isWifiEnabled", False)
                     PHONE_TELEMETRY["isBluetoothEnabled"] = msg.get("isBluetoothEnabled", False)
-                else:
+                    PHONE_TELEMETRY["ringerMode"] = msg.get("ringerMode", 2)
+                    PHONE_TELEMETRY["airplaneMode"] = msg.get("airplaneMode", False)
+                    PHONE_TELEMETRY["isLocationEnabled"] = msg.get("isLocationEnabled", False)
+                    PHONE_TELEMETRY["isTheftShieldEnabled"] = msg.get("isTheftShieldEnabled", False)
+                    PHONE_TELEMETRY["dndFilter"] = msg.get("dndFilter", 1)
+                    PHONE_TELEMETRY["carrierName"] = msg.get("carrierName", "No SIM")
+                    PHONE_TELEMETRY["songTitle"] = msg.get("songTitle", "No music playing")
+                    PHONE_TELEMETRY["artistName"] = msg.get("artistName", "")
+                    
+                    # Store latest GPS coordinates if available in telemetry pulse
+                    if "lat" in msg and "lon" in msg:
+                        PHONE_TELEMETRY["lastLat"] = msg.get("lat")
+                        PHONE_TELEMETRY["lastLon"] = msg.get("lon")
+                        PHONE_TELEMETRY["lastAccuracy"] = msg.get("accuracy", 0)
+                elif msg.get("status") == "location_response":
+                    PHONE_TELEMETRY["lastLat"] = msg.get("lat")
+                    PHONE_TELEMETRY["lastLon"] = msg.get("lon")
+                    PHONE_TELEMETRY["lastAccuracy"] = msg.get("accuracy", 0)
                     with open("/tmp/phone_cmd_response.json", "w") as f:
                         f.write(data)
+                else:
+                    pass
             except Exception:
                 pass
     except WebSocketDisconnect:
