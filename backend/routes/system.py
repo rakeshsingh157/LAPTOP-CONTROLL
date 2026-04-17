@@ -33,10 +33,19 @@ def get_system_metrics():
     disk = psutil.disk_usage('/')
     uptime_seconds = int(time.time() - psutil.boot_time())
     
+    battery = psutil.sensors_battery()
+    battery_info = None
+    if battery:
+        battery_info = {
+            "percent": battery.percent,
+            "power_plugged": battery.power_plugged
+        }
+        
     return {
         "cpu_usage": cpu_percent,
         "ram_usage": {"total": memory.total, "used": memory.used, "percent": memory.percent},
         "disk_usage": {"total": disk.total, "used": disk.used, "percent": disk.percent},
+        "battery": battery_info,
         "os": platform.system(),
         "release": platform.release(),
         "uptime": uptime_seconds,
@@ -174,10 +183,19 @@ async def websocket_metrics(websocket: WebSocket):
             disk = psutil.disk_usage('/')
             uptime_seconds = int(time.time() - psutil.boot_time())
             
+            battery = psutil.sensors_battery()
+            battery_info = None
+            if battery:
+                battery_info = {
+                    "percent": battery.percent,
+                    "power_plugged": battery.power_plugged
+                }
+            
             data = {
                 "cpu_usage": cpu_percent,
                 "ram_usage": {"total": memory.total, "used": memory.used, "percent": memory.percent},
                 "disk_usage": {"total": disk.total, "used": disk.used, "percent": disk.percent},
+                "battery": battery_info,
                 "os": platform.system(),
                 "release": platform.release(),
                 "uptime": uptime_seconds,
@@ -406,6 +424,8 @@ async def screen_stream(websocket: WebSocket):
 
 # ---- FIND MY DEVICE ROUTES ----
 
+import uuid
+
 PHONE_WS_CONNECTION = None
 PHONE_TELEMETRY = {
     "batteryLevel": 100,
@@ -414,11 +434,15 @@ PHONE_TELEMETRY = {
     "isBluetoothEnabled": False
 }
 
+FS_FUTURES = {}
+MAIN_LOOP = None
+
 @router.websocket("/phone_ws")
 async def phone_command_ws(websocket: WebSocket):
-    global PHONE_WS_CONNECTION, PHONE_TELEMETRY
+    global PHONE_WS_CONNECTION, PHONE_TELEMETRY, MAIN_LOOP
     await websocket.accept()
     PHONE_WS_CONNECTION = websocket
+    MAIN_LOOP = asyncio.get_running_loop()
     print("📱 Phone Command WS Connected to Desktop")
     try:
         while True:
@@ -451,6 +475,11 @@ async def phone_command_ws(websocket: WebSocket):
                     PHONE_TELEMETRY["lastAccuracy"] = msg.get("accuracy", 0)
                     with open("/tmp/phone_cmd_response.json", "w") as f:
                         f.write(data)
+                elif msg.get("status") == "fs_response":
+                    req_id = msg.get("req_id")
+                    if req_id in FS_FUTURES:
+                        if not FS_FUTURES[req_id].done():
+                            FS_FUTURES[req_id].set_result(msg)
                 else:
                     pass
             except Exception:
@@ -476,6 +505,27 @@ async def send_phone_cmd(cmd: PhoneCmd):
         raise HTTPException(status_code=503, detail="Phone is not connected to Desktop API")
     await PHONE_WS_CONNECTION.send_text(json.dumps({"action": cmd.action}))
     return {"success": True, "message": f"Sent '{cmd.action}' to phone"}
+
+async def async_phone_fs_request(action: str, **kwargs):
+    if PHONE_WS_CONNECTION is None:
+        raise Exception("Phone not connected")
+    req_id = str(uuid.uuid4())
+    payload = {"action": action, "req_id": req_id}
+    payload.update(kwargs)
+    future = MAIN_LOOP.create_future()
+    FS_FUTURES[req_id] = future
+    await PHONE_WS_CONNECTION.send_text(json.dumps(payload))
+    try:
+        res = await asyncio.wait_for(future, timeout=15.0)
+        return res
+    finally:
+        FS_FUTURES.pop(req_id, None)
+
+def sync_phone_fs_request(action: str, **kwargs):
+    if MAIN_LOOP is None:
+        raise Exception("Main event loop not captured")
+    future = asyncio.run_coroutine_threadsafe(async_phone_fs_request(action, **kwargs), MAIN_LOOP)
+    return future.result()
 
 laptop_ring_process = None
 
@@ -510,5 +560,20 @@ def laptop_stop_ring():
         laptop_ring_process = None
     # Safety net: kill any orphan speaker-test processes
     subprocess.run(["/usr/bin/pkill", "-9", "speaker-test"], capture_output=True)
+    return {"success": True}
+
+@router.post("/laptop/poweroff")
+def laptop_poweroff():
+    subprocess.run(["/usr/bin/systemctl", "poweroff"])
+    return {"success": True}
+
+@router.post("/laptop/reboot")
+def laptop_reboot():
+    subprocess.run(["/usr/bin/systemctl", "reboot"])
+    return {"success": True}
+
+@router.post("/laptop/sleep")
+def laptop_sleep():
+    subprocess.run(["/usr/bin/systemctl", "suspend"])
     return {"success": True}
 

@@ -394,6 +394,22 @@ function DashboardScreen() {
         </View>
 
         <View style={tw`bg-surface-container-low p-6 rounded-md mb-6`}>
+          <View style={tw`flex-row items-center justify-between mb-4`}>
+            <Text style={tw`text-green-400 text-xs font-bold tracking-widest`}>LAPTOP POWER</Text>
+            {metrics && metrics.battery && metrics.battery.power_plugged && <Zap color={tw.color('green-400')} size={16} />}
+          </View>
+          <Text style={tw`text-4xl text-on-surface font-bold tracking-wider`}>
+            {metrics && metrics.battery ? metrics.battery.percent.toFixed(0) : '--'} <Text style={tw`text-lg text-outline`}>%</Text>
+          </Text>
+          {metrics && metrics.battery && (
+              <Text style={tw`text-outline text-xs mt-2`}>Status: {metrics.battery.power_plugged ? 'Charging / AC Power' : 'On Battery Discharging'}</Text>
+          )}
+          {metrics && !metrics.battery && (
+              <Text style={tw`text-outline text-xs mt-2`}>No battery detected (Desktop / Plugged In)</Text>
+          )}
+        </View>
+
+        <View style={tw`bg-surface-container-low p-6 rounded-md mb-6`}>
           <Text style={tw`text-secondary text-xs font-bold tracking-widest mb-4`}>CLIPBOARD SYNC</Text>
           <View style={tw`flex-row gap-3`}>
             <TouchableOpacity onPress={async () => {
@@ -522,6 +538,14 @@ function DashboardScreen() {
               <Text style={tw`text-orange-400/70 text-xs mt-0.5`}>Let FIND MY DEVICE ring on silent mode</Text>
             </View>
             <Lock color={tw.color('orange-400')} size={18} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => NativeModules.BackgroundService.openStorageSettings()} style={tw`bg-surface-container py-3 px-4 rounded-md flex-row justify-between items-center`}>
+            <View>
+              <Text style={tw`text-blue-400 font-bold text-sm`}>7. Enable FTP Storage Bridge</Text>
+              <Text style={tw`text-blue-400/70 text-xs mt-0.5`}>Allow Desktop to access all phone files natively</Text>
+            </View>
+            <Folder color={tw.color('blue-400')} size={18} />
           </TouchableOpacity>
         </View>
 
@@ -824,6 +848,18 @@ function SystemScreen({ navigation }) {
           <Text style={tw`text-3xl font-bold text-on-surface`}>{metrics.disk_usage.percent}%</Text>
           <Text style={tw`text-outline mt-1 font-mono text-xs`}>{Math.round(metrics.disk_usage.used / 1e9)}GB USED</Text>
         </View>
+        <View style={tw`bg-surface-container-low p-5 rounded-md mb-4`}>
+          <Text style={tw`text-outline text-xs tracking-widest mb-1`}>LAPTOP POWER</Text>
+          <Text style={tw`text-3xl font-bold ${metrics.battery && metrics.battery.power_plugged ? 'text-green-400' : 'text-on-surface'}`}>
+            {metrics.battery ? Math.round(metrics.battery.percent) + '%' : '--'}
+          </Text>
+          {metrics.battery && (
+              <Text style={tw`text-outline mt-1 font-mono text-xs`}>{metrics.battery.power_plugged ? 'Power Adapter Connected' : 'On Battery'}</Text>
+          )}
+          {!metrics.battery && (
+              <Text style={tw`text-outline mt-1 font-mono text-xs`}>Desktop Base Station</Text>
+          )}
+        </View>
 
         <Text style={tw`text-xl font-bold text-on-surface mt-6 mb-4`}>System Tools</Text>
         
@@ -846,6 +882,37 @@ function SystemScreen({ navigation }) {
              <Text style={tw`text-outline text-xs mt-1`}>Trackpad and keyboard control</Text>
            </View>
         </TouchableOpacity>
+
+        <Text style={tw`text-xl font-bold text-on-surface mt-2 mb-4`}>Desktop Power State</Text>
+        <View style={tw`flex-row justify-between gap-3 mb-8`}>
+          <TouchableOpacity onPress={() => {
+              Alert.alert('Sleep Desktop', 'Suspend your computer?', [
+                  {text: 'Cancel', style: 'cancel'},
+                  {text: 'Sleep', onPress: () => axios.post(`${apiBase}/laptop/sleep`).catch(()=>{})}
+              ])
+          }} style={tw`flex-1 bg-surface-container py-3 items-center rounded-xl border border-white/5`}>
+             <Monitor color={tw.color('blue-300')} size={20} style={tw`mb-2`} />
+             <Text style={tw`text-blue-300 font-bold text-sm`}>Sleep</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => {
+              Alert.alert('Reboot Desktop', 'Restart your computer?', [
+                  {text: 'Cancel', style: 'cancel'},
+                  {text: 'Reboot', style: 'destructive', onPress: () => axios.post(`${apiBase}/laptop/reboot`).catch(()=>{})}
+              ])
+          }} style={tw`flex-1 bg-surface-container py-3 items-center rounded-xl border border-white/5`}>
+             <RefreshCcw color={tw.color('orange-300')} size={20} style={tw`mb-2`} />
+             <Text style={tw`text-orange-300 font-bold text-sm`}>Reboot</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => {
+              Alert.alert('Power Off Desktop', 'Shutdown your computer immediately?', [
+                  {text: 'Cancel', style: 'cancel'},
+                  {text: 'Power Off', style: 'destructive', onPress: () => axios.post(`${apiBase}/laptop/poweroff`).catch(()=>{})}
+              ])
+          }} style={tw`flex-1 bg-red-500/10 py-3 items-center rounded-xl border border-red-500/20`}>
+             <X color={tw.color('red-400')} size={20} style={tw`mb-2`} />
+             <Text style={tw`text-red-400 font-bold text-sm`}>Power Off</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

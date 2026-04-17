@@ -44,6 +44,8 @@ app.include_router(input_control.router, prefix="/api/input", tags=["Remote Cont
 
 import multiprocessing
 import subprocess
+import phone_ftp
+
 tray_process = None
 
 @app.on_event("startup")
@@ -53,6 +55,11 @@ def startup_event():
         tray_process = subprocess.Popen(["/home/rakesh-singh/Documents/LAPTOP_ACCESS/backend/venv/bin/python", "tray.py"])
     except Exception as e:
         print("Failed to spawn tray icon:", e)
+        
+    try:
+        phone_ftp.start_phone_ftp_server()
+    except Exception as e:
+        print("Failed to start phone FTP bridge:", e)
 
     token_file = "push_token.txt"
     if os.path.exists(token_file):

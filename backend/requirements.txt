@@ -11,3 +11,4 @@ mss
 pyperclip
 Pillow
 pynput
+pyftpdlib
