@@ -438,6 +438,7 @@ async def phone_command_ws(websocket: WebSocket):
                     PHONE_TELEMETRY["carrierName"] = msg.get("carrierName", "No SIM")
                     PHONE_TELEMETRY["songTitle"] = msg.get("songTitle", "No music playing")
                     PHONE_TELEMETRY["artistName"] = msg.get("artistName", "")
+                    PHONE_TELEMETRY["isPlaying"] = msg.get("isPlaying", False)
                     
                     # Store latest GPS coordinates if available in telemetry pulse
                     if "lat" in msg and "lon" in msg:

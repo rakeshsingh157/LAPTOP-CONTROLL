@@ -237,7 +237,7 @@
 
                 <div class="flex items-center justify-between gap-2">
                     <button onclick="sendCmd('media_prev')" class="h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 transition text-gray-400"><i class="fas fa-backward"></i></button>
-                    <button onclick="sendCmd('media_play_pause')" class="h-12 w-12 rounded-2xl bg-white text-black hover:scale-105 transition shadow-lg flex items-center justify-center p-0"><i class="fas fa-play ml-1"></i></button>
+                    <button onclick="sendCmd('media_play_pause')" class="h-12 w-12 rounded-2xl bg-white text-black hover:scale-105 transition shadow-lg flex items-center justify-center p-0"><i id="play-pause-icon" class="fas fa-play ml-1"></i></button>
                     <button onclick="sendCmd('media_next')" class="h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 transition text-gray-400"><i class="fas fa-forward"></i></button>
                 </div>
             </div>
@@ -251,9 +251,9 @@
                         <i class="fas fa-lightbulb text-brand-400 text-sm"></i>
                     </button>
                     <div class="grid grid-cols-3 gap-1 mt-2">
-                         <button onclick="sendCmd('ringer_normal')" class="py-2.5 rounded-xl bg-gray-900 text-[9px] font-bold hover:bg-brand-500 transition border border-white/5">RING</button>
-                         <button onclick="sendCmd('ringer_vibrate')" class="py-2.5 rounded-xl bg-gray-900 text-[9px] font-bold hover:bg-brand-500 transition border border-white/5">VIBE</button>
-                         <button onclick="sendCmd('ringer_silent')" class="py-2.5 rounded-xl bg-gray-900 text-[9px] font-bold hover:bg-brand-500 transition border border-white/5">MUTE</button>
+                         <button id="ring-btn" onclick="sendCmd('ringer_normal')" class="py-2.5 rounded-xl bg-gray-900 border border-white/5 text-[9px] font-bold hover:bg-brand-500 transition">RING</button>
+                         <button id="vibe-btn" onclick="sendCmd('ringer_vibrate')" class="py-2.5 rounded-xl bg-gray-900 border border-white/5 text-[9px] font-bold hover:bg-brand-500 transition">VIBE</button>
+                         <button id="mute-btn" onclick="sendCmd('ringer_silent')" class="py-2.5 rounded-xl bg-gray-900 border border-white/5 text-[9px] font-bold hover:bg-brand-500 transition">MUTE</button>
                     </div>
                 </div>
             </div>
@@ -358,6 +358,19 @@
                 updateRadio('air', tel.airplaneMode, 'orange');
                 updateRadio('dnd', tel.dndFilter > 1, 'purple');
 
+                // Ringer Mode
+                const setRingerBtn = (id, active) => {
+                    const el = document.getElementById(id);
+                    if(active) {
+                        el.className = "py-2.5 rounded-xl bg-brand-500 border border-white/5 text-[9px] font-bold text-white transition shadow-[0_0_10px_rgba(14,130,236,0.3)]";
+                    } else {
+                        el.className = "py-2.5 rounded-xl bg-gray-900 border border-white/5 text-[9px] font-bold hover:bg-brand-500 transition";
+                    }
+                };
+                setRingerBtn('ring-btn', tel.ringerMode === 2);
+                setRingerBtn('vibe-btn', tel.ringerMode === 1);
+                setRingerBtn('mute-btn', tel.ringerMode === 0);
+
                 // Shield
                 const si = document.getElementById('shield-indicator');
                 const ss = document.getElementById('shield-status');
@@ -372,6 +385,14 @@
                 // Music
                 document.getElementById('song-title').innerText = tel.songTitle || "SILENCE";
                 document.getElementById('artist-name').innerText = tel.artistName || "SYSTEM IDLE";
+                
+                // Play/Pause icon toggle
+                const ppIcon = document.getElementById('play-pause-icon');
+                if (tel.isPlaying) {
+                    ppIcon.className = "fas fa-pause";
+                } else {
+                    ppIcon.className = "fas fa-play ml-1";
+                }
 
             } catch(e) {}
 
