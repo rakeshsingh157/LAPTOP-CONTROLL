@@ -6,13 +6,13 @@ import * as Sharing from 'expo-sharing';
 import { PermissionsAndroid } from 'react-native';
 import RNAndroidNotificationListener from 'react-native-android-notification-listener';
 import React, { useState, useEffect, createContext, useContext, useRef, useCallback } from 'react';
-import { View, Text, Platform, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, NativeModules, Alert, Modal, Linking, Image, StatusBar, PanResponder, Switch } from 'react-native';
+import { View, Text, Platform, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, NativeModules, Alert, Modal, Linking, Image, StatusBar, PanResponder, Switch, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import axios from 'axios';
-import { Home, Activity, Terminal as TerminalIcon, Folder, Download, Upload, Search, ArrowUp, UploadCloud, Monitor , AlertTriangle, X, Camera, RefreshCcw, Smartphone, Mouse, Shield, Zap, Lock } from "lucide-react-native";
+import { Home, Activity, Terminal as TerminalIcon, Folder, Download, Upload, Search, ArrowUp, UploadCloud, Monitor, AlertTriangle, X, Camera, RefreshCcw, Smartphone, Mouse, Shield, Zap, Lock } from "lucide-react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { mediaDevices, RTCPeerConnection, RTCIceCandidate, RTCSessionDescription } from 'react-native-webrtc';
 
@@ -249,11 +249,26 @@ function DashboardScreen() {
     async function requestPermissions() {
       if (Platform.OS === 'android') {
         try {
-          // Step 1: Request foreground location ("While using the app")
-          const fgResult = await PermissionsAndroid.requestMultiple([
+          // Step 1: Request foreground location and storage ("While using the app")
+          let permissionsToRequest = [
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
             PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-          ]);
+          ];
+          
+          if (Platform.Version >= 33) {
+            permissionsToRequest.push(
+              PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+              PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+              PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO
+            );
+          } else {
+            permissionsToRequest.push(
+              PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+              PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+            );
+          }
+
+          const fgResult = await PermissionsAndroid.requestMultiple(permissionsToRequest);
           
           // Step 2: If foreground granted, request background ("Allow all the time")
           const fineGranted = fgResult[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] === PermissionsAndroid.RESULTS.GRANTED;

@@ -562,18 +562,49 @@ def laptop_stop_ring():
     subprocess.run(["/usr/bin/pkill", "-9", "speaker-test"], capture_output=True)
     return {"success": True}
 
+def _run_power_command(cmd_args, loginctl_cmd):
+    print(f"Power command triggered: {loginctl_cmd}")
+    # Try loginctl first as it's the standard high-level tool
+    try:
+        res = subprocess.run(["/usr/bin/loginctl", loginctl_cmd], capture_output=True, text=True)
+        print(f"loginctl {loginctl_cmd} output: {res.stdout} {res.stderr}")
+        if res.returncode == 0:
+            return {"success": True}
+    except Exception as e:
+        print(f"loginctl error: {e}")
+
+    # Fallback to direct busctl call
+    try:
+        dbus_method = {
+            "power-off": "PowerOff",
+            "reboot": "Reboot",
+            "suspend": "Suspend"
+        }.get(loginctl_cmd, "Suspend")
+        
+        dbus_cmd = ["/usr/bin/busctl", "call", "org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", dbus_method, "b", "true"]
+        res = subprocess.run(dbus_cmd, capture_output=True, text=True)
+        print(f"busctl {dbus_method} output: {res.stdout} {res.stderr}")
+        if res.returncode == 0:
+            return {"success": True}
+    except Exception as e:
+        print(f"busctl error: {e}")
+
+    # Final Fallback to systemctl
+    res = subprocess.run(cmd_args, capture_output=True, text=True)
+    print(f"systemctl output: {res.stdout} {res.stderr}")
+    if res.returncode != 0:
+        return {"success": False, "error": res.stderr or res.stdout}
+    return {"success": True}
+
 @router.post("/laptop/poweroff")
 def laptop_poweroff():
-    subprocess.run(["/usr/bin/systemctl", "poweroff"])
-    return {"success": True}
+    return _run_power_command(["/usr/bin/systemctl", "poweroff"], "power-off")
 
 @router.post("/laptop/reboot")
 def laptop_reboot():
-    subprocess.run(["/usr/bin/systemctl", "reboot"])
-    return {"success": True}
+    return _run_power_command(["/usr/bin/systemctl", "reboot"], "reboot")
 
 @router.post("/laptop/sleep")
 def laptop_sleep():
-    subprocess.run(["/usr/bin/systemctl", "suspend"])
-    return {"success": True}
+    return _run_power_command(["/usr/bin/systemctl", "suspend"], "suspend")
 
