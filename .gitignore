@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+venv/
+.env
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Expo / React Native
+frontend/.expo/
+frontend/dist/
+*.jks
+*.keystore
+
+# Android
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/.gradle/
+frontend/local.properties
+
+# iOS
+frontend/ios/Pods/
+frontend/ios/build/
+
+# IDE
+.qodo/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+backend/static/update.apk
+
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store

@@ -24,7 +24,7 @@ if not os.environ.get("PULSE_SERVER"):
 from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
-from routes import system, notifications, screen_share, input_control
+from routes import system, notifications, screen_share, input_control, input_sharing_route
 
 app = FastAPI(title="Rakesh Ecosystem Dashboard API")
 
@@ -40,11 +40,13 @@ app.include_router(system.router, prefix="/api/system", tags=["System & Terminal
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(screen_share.router, prefix="/api/share", tags=["Screen Share WebSocket"])
 app.include_router(input_control.router, prefix="/api/input", tags=["Remote Control"])
+app.include_router(input_sharing_route.router, prefix="/api/input-sharing", tags=["Stitch Flow Input Sharing"])
 
 
 import multiprocessing
 import subprocess
 import phone_ftp
+from services.input_sharing import daemon as input_sharing_daemon
 
 tray_process = None
 
@@ -60,6 +62,11 @@ def startup_event():
         phone_ftp.start_phone_ftp_server()
     except Exception as e:
         print("Failed to start phone FTP bridge:", e)
+
+    try:
+        input_sharing_daemon.start()
+    except Exception as e:
+        print("Failed to start Stitch Flow daemon:", e)
 
     token_file = "push_token.txt"
     if os.path.exists(token_file):
@@ -95,6 +102,11 @@ def shutdown_event():
             tray_process.terminate()
         except:
             pass
+
+    try:
+        input_sharing_daemon.stop()
+    except:
+        pass
 
     token_file = "push_token.txt"
     if os.path.exists(token_file):

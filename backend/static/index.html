@@ -260,6 +260,123 @@
 
         </div>
 
+        <!-- Stitch Flow — Input Sharing -->
+        <div class="md:col-span-12 glass-panel p-8 rounded-3xl relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 h-60 w-60 bg-violet-500/5 blur-[80px] rounded-full"></div>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.3)]">
+                        <i class="fas fa-arrow-right-arrow-left text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-white">Stitch Flow</h2>
+                        <p id="sf-subtitle" class="text-[10px] text-gray-500 font-bold tracking-wider">CROSS-DEVICE INPUT BRIDGE</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="sf-phone-dot" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800 border border-white/5">
+                        <div class="h-2 w-2 bg-gray-600 rounded-full" id="sf-bridge-dot"></div>
+                        <span class="text-[9px] font-bold text-gray-500" id="sf-bridge-text">BRIDGE OFFLINE</span>
+                    </div>
+                    <button onclick="sfToggle()" id="sf-toggle-btn" class="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-gray-800 border border-white/5 text-gray-400 hover:bg-violet-500/20 hover:text-violet-300 hover:border-violet-500/30">Enable</button>
+                </div>
+            </div>
+
+            <!-- Device Arrangement Visualizer -->
+            <div class="flex items-center justify-center gap-8 mb-6">
+                <!-- Desktop Monitor -->
+                <div class="relative">
+                    <div class="w-48 h-28 bg-gray-900 rounded-xl border-2 border-gray-700 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-transparent"></div>
+                        <i class="fas fa-display text-gray-600 text-2xl"></i>
+                        <div id="sf-desktop-indicator" class="absolute inset-0 border-2 border-transparent rounded-xl transition-all duration-300"></div>
+                    </div>
+                    <div class="w-12 h-2 bg-gray-700 rounded-b-lg mx-auto"></div>
+                    <p class="text-[9px] text-gray-500 text-center mt-1 font-bold">YOUR PC</p>
+                </div>
+
+                <!-- Connection Arrow -->
+                <div class="flex flex-col items-center gap-1">
+                    <div id="sf-flow-arrow" class="flex items-center gap-1 text-gray-600 transition-colors">
+                        <div class="h-[2px] w-8 bg-current rounded"></div>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </div>
+                    <span id="sf-flow-label" class="text-[8px] font-bold text-gray-600 uppercase tracking-widest">IDLE</span>
+                </div>
+
+                <!-- Phone -->
+                <div class="relative">
+                    <div class="w-20 h-36 bg-gray-900 rounded-2xl border-2 border-gray-700 flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="absolute top-1.5 w-8 h-1 bg-gray-700 rounded-full"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-violet-900/10 to-transparent"></div>
+                        <i class="fas fa-mobile-alt text-gray-600 text-lg"></i>
+                        <div id="sf-phone-cursor" class="absolute w-3 h-3 bg-violet-400 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.6)] opacity-0 transition-opacity" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+                        <div id="sf-phone-indicator" class="absolute inset-0 border-2 border-transparent rounded-2xl transition-all duration-300"></div>
+                    </div>
+                    <p id="sf-phone-name" class="text-[9px] text-gray-500 text-center mt-1 font-bold truncate w-20">NO DEVICE</p>
+                </div>
+            </div>
+
+            <!-- Controls Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Paired Devices -->
+                <div class="bg-white/5 rounded-2xl p-4 border border-white/5">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Paired Devices</p>
+                        <button onclick="sfPair()" class="text-[9px] font-bold text-violet-400 hover:text-violet-300 transition uppercase tracking-wider"><i class="fas fa-plus mr-1"></i>Pair</button>
+                    </div>
+                    <div id="sf-device-list" class="space-y-2">
+                        <p class="text-xs text-gray-600 text-center py-3">No devices paired</p>
+                    </div>
+                </div>
+
+                <!-- Edge Configuration -->
+                <div class="bg-white/5 rounded-2xl p-4 border border-white/5">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Edge Assignment</p>
+                    <div class="grid grid-cols-3 grid-rows-3 gap-1 w-28 h-28 mx-auto">
+                        <div></div>
+                        <button onclick="sfSetEdge('top')" id="sf-edge-top" class="rounded-lg bg-gray-800 border border-white/5 text-[8px] font-bold text-gray-500 hover:bg-violet-500/20 hover:text-violet-300 transition flex items-center justify-center">T</button>
+                        <div></div>
+                        <button onclick="sfSetEdge('left')" id="sf-edge-left" class="rounded-lg bg-gray-800 border border-white/5 text-[8px] font-bold text-gray-500 hover:bg-violet-500/20 hover:text-violet-300 transition flex items-center justify-center">L</button>
+                        <div class="rounded-lg bg-gray-900 border border-white/10 flex items-center justify-center"><i class="fas fa-display text-[10px] text-gray-600"></i></div>
+                        <button onclick="sfSetEdge('right')" id="sf-edge-right" class="rounded-lg bg-violet-500/20 border border-violet-500/30 text-[8px] font-bold text-violet-300 transition flex items-center justify-center">R</button>
+                        <div></div>
+                        <button onclick="sfSetEdge('bottom')" id="sf-edge-bottom" class="rounded-lg bg-gray-800 border border-white/5 text-[8px] font-bold text-gray-500 hover:bg-violet-500/20 hover:text-violet-300 transition flex items-center justify-center">B</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="bg-white/5 rounded-2xl p-4 border border-white/5">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Sensitivity</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[9px] text-gray-500 font-bold block mb-1">CURSOR SPEED</label>
+                            <input type="range" id="sf-speed" min="0.2" max="3.0" step="0.1" value="1.0" onchange="sfUpdateSettings()" class="w-full h-1 bg-gray-700 rounded-full appearance-none cursor-pointer accent-violet-500">
+                            <span id="sf-speed-val" class="text-[9px] text-violet-400 font-mono">1.0x</span>
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-gray-500 font-bold block mb-1">EDGE DWELL (ms)</label>
+                            <input type="range" id="sf-dwell" min="50" max="500" step="25" value="150" onchange="sfUpdateSettings()" class="w-full h-1 bg-gray-700 rounded-full appearance-none cursor-pointer accent-violet-500">
+                            <span id="sf-dwell-val" class="text-[9px] text-violet-400 font-mono">150ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pairing Modal -->
+            <div id="sf-pair-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div class="glass-panel p-8 rounded-3xl w-96 border border-violet-500/20 text-center">
+                    <i class="fas fa-link text-violet-400 text-3xl mb-4"></i>
+                    <h3 class="text-lg font-bold text-white mb-2">Pair Your Phone</h3>
+                    <p class="text-xs text-gray-400 mb-6">Enter this code in your phone's Stitch Flow settings</p>
+                    <div id="sf-otp-display" class="text-4xl font-mono font-bold text-violet-300 tracking-[0.5em] mb-6 bg-gray-900 py-4 rounded-2xl border border-violet-500/20">------</div>
+                    <p id="sf-otp-timer" class="text-[10px] text-gray-500 mb-6">Expires in 120s</p>
+                    <button onclick="sfClosePairModal()" class="px-6 py-2.5 rounded-xl bg-gray-800 text-sm font-bold text-gray-300 hover:bg-gray-700 transition border border-white/5">Close</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Alert Feed — Full Width -->
         <div class="md:col-span-12 glass-panel p-8 rounded-3xl h-[400px] flex flex-col">
             <div class="flex items-center justify-between mb-5">
@@ -419,6 +536,212 @@
 
         setInterval(pollTelemetry, 2500);
         pollTelemetry();
+
+        // ═══════════════════════════════════════════════════════════════
+        // STITCH FLOW — Input Sharing Dashboard Logic
+        // ═══════════════════════════════════════════════════════════════
+
+        let sfEnabled = false;
+        let sfActiveEdge = 'right';
+        let sfDeviceId = null;
+        let sfOtpTimer = null;
+        let sfStatusWs = null;
+
+        async function sfFetchStatus() {
+            try {
+                const res = await fetch('/api/input-sharing/status');
+                const data = await res.json();
+                sfEnabled = data.enabled;
+                sfUpdateUI(data);
+            } catch(e) {}
+        }
+
+        function sfUpdateUI(data) {
+            // Toggle button
+            const btn = document.getElementById('sf-toggle-btn');
+            if (data.enabled) {
+                btn.innerText = 'ENABLED';
+                btn.className = 'px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-violet-500/20 border border-violet-500/30 text-violet-300';
+            } else {
+                btn.innerText = 'DISABLED';
+                btn.className = 'px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-gray-800 border border-white/5 text-gray-400 hover:bg-violet-500/20 hover:text-violet-300 hover:border-violet-500/30';
+            }
+
+            // Bridge status
+            const dot = document.getElementById('sf-bridge-dot');
+            const txt = document.getElementById('sf-bridge-text');
+            if (data.phone_connected) {
+                dot.className = 'h-2 w-2 bg-emerald-400 rounded-full animate-pulse';
+                txt.innerText = 'BRIDGE ONLINE';
+                txt.className = 'text-[9px] font-bold text-emerald-400';
+            } else {
+                dot.className = 'h-2 w-2 bg-gray-600 rounded-full';
+                txt.innerText = 'BRIDGE OFFLINE';
+                txt.className = 'text-[9px] font-bold text-gray-500';
+            }
+
+            // Active state visualization
+            const desktopInd = document.getElementById('sf-desktop-indicator');
+            const phoneInd = document.getElementById('sf-phone-indicator');
+            const flowArrow = document.getElementById('sf-flow-arrow');
+            const flowLabel = document.getElementById('sf-flow-label');
+            const phoneCursor = document.getElementById('sf-phone-cursor');
+
+            if (data.active) {
+                desktopInd.className = 'absolute inset-0 border-2 border-gray-600 rounded-xl transition-all duration-300';
+                phoneInd.className = 'absolute inset-0 border-2 border-violet-500 rounded-2xl transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.3)]';
+                flowArrow.className = 'flex items-center gap-1 text-violet-400 transition-colors';
+                flowLabel.innerText = 'STREAMING';
+                flowLabel.className = 'text-[8px] font-bold text-violet-400 uppercase tracking-widest';
+                phoneCursor.style.opacity = '1';
+
+                // Position cursor on phone silhouette
+                if (data.phone_cursor && data.devices?.length) {
+                    const dev = data.devices[0];
+                    const px = (data.phone_cursor[0] / dev.phone_size[0]) * 100;
+                    const py = (data.phone_cursor[1] / dev.phone_size[1]) * 100;
+                    phoneCursor.style.left = px + '%';
+                    phoneCursor.style.top = py + '%';
+                }
+            } else {
+                desktopInd.className = 'absolute inset-0 border-2 border-brand-500/30 rounded-xl transition-all duration-300';
+                phoneInd.className = 'absolute inset-0 border-2 border-transparent rounded-2xl transition-all duration-300';
+                flowArrow.className = 'flex items-center gap-1 text-gray-600 transition-colors';
+                flowLabel.innerText = 'IDLE';
+                flowLabel.className = 'text-[8px] font-bold text-gray-600 uppercase tracking-widest';
+                phoneCursor.style.opacity = '0';
+            }
+
+            // Device list
+            const listEl = document.getElementById('sf-device-list');
+            if (data.devices?.length) {
+                listEl.innerHTML = data.devices.map(d => `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-900 border border-white/5">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-mobile-alt text-violet-400 text-xs"></i>
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-200">${d.name}</p>
+                                <p class="text-[8px] text-gray-500">${d.phone_size[0]}×${d.phone_size[1]} · ${d.edge.toUpperCase()} edge</p>
+                            </div>
+                        </div>
+                        <button onclick="sfUnpair('${d.device_id}')" class="text-[8px] text-red-400 hover:text-red-300 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+                sfDeviceId = data.devices[0].device_id;
+                sfActiveEdge = data.devices[0].edge;
+                document.getElementById('sf-phone-name').innerText = data.devices[0].name;
+            } else {
+                listEl.innerHTML = '<p class="text-xs text-gray-600 text-center py-3">No devices paired</p>';
+                document.getElementById('sf-phone-name').innerText = 'NO DEVICE';
+            }
+
+            // Edge buttons
+            ['top','right','bottom','left'].forEach(e => {
+                const el = document.getElementById('sf-edge-'+e);
+                if (e === sfActiveEdge) {
+                    el.className = 'rounded-lg bg-violet-500/20 border border-violet-500/30 text-[8px] font-bold text-violet-300 transition flex items-center justify-center';
+                } else {
+                    el.className = 'rounded-lg bg-gray-800 border border-white/5 text-[8px] font-bold text-gray-500 hover:bg-violet-500/20 hover:text-violet-300 transition flex items-center justify-center';
+                }
+            });
+
+            // Settings sliders
+            if (data.config) {
+                document.getElementById('sf-speed').value = data.config.cursor_speed_multiplier;
+                document.getElementById('sf-speed-val').innerText = data.config.cursor_speed_multiplier + 'x';
+                document.getElementById('sf-dwell').value = data.config.edge_dwell_ms;
+                document.getElementById('sf-dwell-val').innerText = data.config.edge_dwell_ms + 'ms';
+            }
+        }
+
+        async function sfToggle() {
+            sfEnabled = !sfEnabled;
+            await fetch('/api/input-sharing/toggle', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({enabled: sfEnabled})
+            });
+            sfFetchStatus();
+        }
+
+        async function sfSetEdge(edge) {
+            if (!sfDeviceId) return;
+            await fetch('/api/input-sharing/edge', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({device_id: sfDeviceId, edge})
+            });
+            sfFetchStatus();
+        }
+
+        async function sfUpdateSettings() {
+            const speed = parseFloat(document.getElementById('sf-speed').value);
+            const dwell = parseInt(document.getElementById('sf-dwell').value);
+            document.getElementById('sf-speed-val').innerText = speed.toFixed(1) + 'x';
+            document.getElementById('sf-dwell-val').innerText = dwell + 'ms';
+            await fetch('/api/input-sharing/settings', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({cursor_speed_multiplier: speed, edge_dwell_ms: dwell})
+            });
+        }
+
+        async function sfPair() {
+            document.getElementById('sf-pair-modal').classList.remove('hidden');
+            try {
+                const res = await fetch('/api/input-sharing/pair/generate', {method:'POST'});
+                const data = await res.json();
+                document.getElementById('sf-otp-display').innerText = data.otp;
+                let remaining = data.expires_in;
+                if (sfOtpTimer) clearInterval(sfOtpTimer);
+                sfOtpTimer = setInterval(() => {
+                    remaining--;
+                    document.getElementById('sf-otp-timer').innerText = `Expires in ${remaining}s`;
+                    if (remaining <= 0) {
+                        clearInterval(sfOtpTimer);
+                        document.getElementById('sf-otp-display').innerText = 'EXPIRED';
+                        document.getElementById('sf-otp-timer').innerText = 'Generate a new code';
+                    }
+                }, 1000);
+            } catch(e) {
+                document.getElementById('sf-otp-display').innerText = 'ERROR';
+            }
+        }
+
+        function sfClosePairModal() {
+            document.getElementById('sf-pair-modal').classList.add('hidden');
+            if (sfOtpTimer) clearInterval(sfOtpTimer);
+            sfFetchStatus();
+        }
+
+        async function sfUnpair(deviceId) {
+            await fetch('/api/input-sharing/unpair', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({device_id: deviceId})
+            });
+            sfFetchStatus();
+        }
+
+        // Connect status WebSocket for real-time updates
+        function sfConnectStatusWs() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            sfStatusWs = new WebSocket(proto + '//' + location.host + '/api/input-sharing/ws/status');
+            sfStatusWs.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    sfUpdateUI(data);
+                } catch(err) {}
+            };
+            sfStatusWs.onclose = () => setTimeout(sfConnectStatusWs, 3000);
+            sfStatusWs.onerror = () => {};
+        }
+
+        sfFetchStatus();
+        sfConnectStatusWs();
     </script>
 </body>
 </html>

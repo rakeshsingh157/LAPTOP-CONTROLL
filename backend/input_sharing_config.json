@@ -1,0 +1,18 @@
+{
+  "devices": [
+    {
+      "name": "TECNO LI9",
+      "device_id": "3daf9c46a22363ea",
+      "edge": "left",
+      "phone_width": 1080,
+      "phone_height": 2436,
+      "paired": true,
+      "session_token": "ecd61904fca139ec35add06af71cd68e"
+    }
+  ],
+  "enabled": true,
+  "default_edge": "right",
+  "cursor_speed_multiplier": 2.2,
+  "edge_threshold_px": 2,
+  "edge_dwell_ms": 250
+}

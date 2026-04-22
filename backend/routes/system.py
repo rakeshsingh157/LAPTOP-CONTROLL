@@ -521,11 +521,31 @@ async def async_phone_fs_request(action: str, **kwargs):
     finally:
         FS_FUTURES.pop(req_id, None)
 
-def sync_phone_fs_request(action: str, **kwargs):
+async def async_phone_fs_send_only(action: str, **kwargs):
+    if PHONE_WS_CONNECTION is None:
+        raise Exception("Phone not connected via WebSocket")
+    payload = {"action": action, "req_id": f"fire_and_forget_{uuid.uuid4()}"}
+    payload.update(kwargs)
+    await PHONE_WS_CONNECTION.send_text(json.dumps(payload))
+
+def sync_phone_fs_request(action: str, timeout=15.0, **kwargs):
+    # Small wait for initial connection if backend just started
+    wait_start = time.time()
+    while (PHONE_WS_CONNECTION is None or MAIN_LOOP is None) and (time.time() - wait_start) < 5.0:
+        time.sleep(0.1)
+        
     if MAIN_LOOP is None:
         raise Exception("Main event loop not captured")
-    future = asyncio.run_coroutine_threadsafe(async_phone_fs_request(action, **kwargs), MAIN_LOOP)
+    if PHONE_WS_CONNECTION is None:
+        raise Exception("Phone not connected via WebSocket")
+        
+    future = asyncio.run_coroutine_threadsafe(async_phone_fs_request(action, timeout=timeout, **kwargs), MAIN_LOOP)
     return future.result()
+
+def sync_phone_fs_send_only(action: str, **kwargs):
+    if MAIN_LOOP is None or PHONE_WS_CONNECTION is None:
+        return
+    asyncio.run_coroutine_threadsafe(async_phone_fs_send_only(action, **kwargs), MAIN_LOOP)
 
 laptop_ring_process = None
 

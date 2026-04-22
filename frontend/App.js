@@ -371,6 +371,16 @@ function DashboardScreen() {
           <TouchableOpacity style={tw`bg-surface-container px-4 py-2 rounded-md`}>
             <Text style={tw`text-on-surface text-xs font-bold tracking-widest`}>GENERATE REPORT</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => {
+              // Usually apiBase is something like 'http://192.168.1.5:62007/api/system'
+              const url = apiBase.replace('/api/system', '') + '/dashboard/update.apk';
+              Linking.openURL(url).catch(err => Alert.alert("Error", "Could not open update link: " + err.message));
+            }}
+            style={tw`bg-blue-500 px-4 py-2 rounded-md flex-row items-center`}>
+            <Download color="#fff" size={14} style={tw`mr-2`} />
+            <Text style={tw`text-white text-xs font-bold tracking-widest`}>UPDATE APP</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Custom Core Card */}
@@ -1011,6 +1021,113 @@ function TerminalScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+function StitchFlowScreen({ navigation }) {
+  const { apiBase } = useContext(ApiContext);
+  const [otp, setOtp] = useState('');
+  const [status, setStatus] = useState('idle'); // idle, pairing, error
+
+  const handlePair = async () => {
+    if (!otp || otp.length < 6) {
+      Alert.alert("Invalid Code", "Please enter the 6-digit code shown on your desktop.");
+      return;
+    }
+    setStatus('pairing');
+    try {
+      NativeModules.BackgroundService.verifyOtp(otp);
+      // We don't have a callback from native for success, 
+      // but the bridge will update if successful.
+      Alert.alert("Pairing Request Sent", "If the code is correct, your phone will be paired with the desktop.");
+      setOtp('');
+      setStatus('idle');
+    } catch (err) {
+      setStatus('error');
+      Alert.alert("Error", "Could not send pairing request.");
+    }
+  };
+
+  return (
+    <SafeAreaView style={tw`flex-1 bg-surface-dim`}>
+      <ScrollView contentContainerStyle={tw`p-6 pt-10`}>
+        <View style={tw`flex-row items-center mb-6`}>
+           <View style={tw`w-12 h-12 rounded-full bg-primary/20 items-center justify-center mr-4`}>
+              <Mouse color={tw.color('primary')} size={28} />
+           </View>
+           <View>
+             <Text style={tw`text-2xl font-bold text-on-surface`}>Stitch Flow</Text>
+             <Text style={tw`text-outline text-sm`}>Cross-device mouse & keyboard bridge</Text>
+           </View>
+        </View>
+
+        <View style={tw`bg-surface-container-low p-6 rounded-xl mb-6`}>
+           <Text style={tw`text-on-surface font-bold text-lg mb-2`}>Connect to Desktop</Text>
+           <Text style={tw`text-outline text-xs mb-6`}>
+             Enter the 6-digit pairing code shown on your desktop's Stitch Flow dashboard to enable control.
+           </Text>
+
+           <View style={tw`bg-surface-dim p-1 rounded-xl mb-6 border border-outline/20`}>
+             <TextInput
+               style={tw`p-4 text-3xl text-center font-bold tracking-[10px] text-primary`}
+               placeholder="000000"
+               placeholderTextColor={tw.color('outline/30')}
+               value={otp}
+               onChangeText={setOtp}
+               keyboardType="number-pad"
+               maxLength={6}
+             />
+           </View>
+
+           <TouchableOpacity 
+             onPress={handlePair}
+             disabled={status === 'pairing'}
+             style={tw`bg-primary py-4 rounded-xl items-center justify-center`}>
+              {status === 'pairing' ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={tw`text-white font-bold text-base`}>Pair with Desktop</Text>
+              )}
+           </TouchableOpacity>
+        </View>
+
+        <View style={tw`bg-surface-container-low p-6 rounded-xl mb-6`}>
+           <Text style={tw`text-on-surface font-bold text-base mb-4`}>Connection Status</Text>
+           
+           <View style={tw`flex-row items-center mb-4`}>
+              <View style={tw`w-3 h-3 rounded-full ${status === 'pairing' ? 'bg-yellow-500' : 'bg-green-500'} mr-3`} />
+              <Text style={tw`text-on-surface text-sm`}>Bridge Service: Active</Text>
+           </View>
+
+           <TouchableOpacity 
+             onPress={() => NativeModules.BackgroundService.openAccessibilitySettings()}
+             style={tw`flex-row items-center p-3 bg-surface-dim rounded-lg border border-outline/10 mb-2`}>
+              <View style={tw`w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3`}>
+                <Shield color={tw.color('primary')} size={20} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text style={tw`text-on-surface font-medium text-sm`}>Accessibility Service</Text>
+                <Text style={tw`text-outline text-xs`}>Tap to enable (REQUIRED for clicks)</Text>
+              </View>
+              <ArrowUp color={tw.color('outline')} size={16} style={{transform: [{rotate: '45deg'}]}} />
+           </TouchableOpacity>
+           
+           <Text style={tw`text-outline text-[10px] mt-2`}>
+             Note: If the cursor appears but doesn't move or click, please toggle the Accessibility Service OFF and ON in your phone settings.
+           </Text>
+        </View>
+
+        <View style={tw`bg-blue-500/10 p-5 rounded-xl border border-blue-500/20`}>
+           <Text style={tw`text-blue-400 font-bold text-sm mb-2`}>How it works</Text>
+           <Text style={tw`text-blue-400/80 text-xs leading-5`}>
+             1. Enable the bridge on your desktop.{'\n'}
+             2. Move your mouse to the screen edge.{'\n'}
+             3. Your cursor will magically appear on your phone!{'\n'}
+             4. Use your PC keyboard to type in any app.
+           </Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1726,6 +1843,11 @@ export default function App() {
           name="Remote" 
           component={RemoteScreen} 
           options={{ tabBarIcon: ({ color }) => <Monitor color={color} size={24} /> }} 
+        />
+        <Tab.Screen 
+          name="Stitch Flow" 
+          component={StitchFlowScreen} 
+          options={{ tabBarIcon: ({ color }) => <Mouse color={color} size={24} /> }} 
         />
         <Tab.Screen 
           name="Files" 
